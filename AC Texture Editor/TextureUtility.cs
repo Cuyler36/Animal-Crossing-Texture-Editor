@@ -308,9 +308,9 @@ namespace AC_Texture_Editor
             return Palette;
         }
 
-        public static Bitmap GenerateBitmap(byte[] patternRawData, ushort[] Palette, int Sections, int Blocks, int Width, int Size_X, int Size_Y)
+        public static Bitmap GenerateBitmap(byte[] patternRawData, ushort[] Palette, int Sections, int Blocks, int Width, int Size_X, int Size_Y, bool Swap = true)
         {
-            byte[] Organized_Data = Swap_Pattern(patternRawData, Sections, Blocks, Width);
+            byte[] Organized_Data = Swap ? Swap_Pattern(patternRawData, Sections, Blocks, Width) : patternRawData;
             byte[] patternBitmapBuffer = new byte[Organized_Data.Length * 4];
 
             int pos = 0;

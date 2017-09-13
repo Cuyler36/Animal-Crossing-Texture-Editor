@@ -16,6 +16,8 @@ using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Windows.Interop;
 using System.Drawing.Imaging;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace AC_Texture_Editor
 {
@@ -34,11 +36,17 @@ namespace AC_Texture_Editor
         private System.Windows.Forms.OpenFileDialog File_Select = new System.Windows.Forms.OpenFileDialog();
         private System.Windows.Forms.OpenFileDialog Import_Select = new System.Windows.Forms.OpenFileDialog();
         private System.Windows.Forms.SaveFileDialog File_Save = new System.Windows.Forms.SaveFileDialog();
+        private int SelectedColor;
         private TextureEntry[] TextureEntries;
         private TextureEntry SelectedEntry;
         private DrawingBrush Shirt_Brush = new DrawingBrush();
         private DrawingBrush FloorCarpet_Brush = new DrawingBrush();
         private DrawingBrush Face_Brush = new DrawingBrush();
+        private bool Setting_Color = false;
+        private bool Mouse_Down = false;
+        private string RGBBox_LastText = "";
+        private int Last_X = -1;
+        private int Last_Y = -1;
 
         public MainWindow()
         {
@@ -121,6 +129,7 @@ namespace AC_Texture_Editor
             Set_Palette_Colors(Entry.Palette);
             SelectedEntry = Entry;
             SelectedLabel.Content = string.Format("{0} - {1}", Entry.Parent.Texture_Name, Entry.Entry_Index);
+            SetPaletteColor(SelectedColor);
         }
 
         private void Set_Palette_Colors(ushort[] Palette)
@@ -160,7 +169,7 @@ namespace AC_Texture_Editor
 
             return (ushort)(r << (10) | (g << 5) | b);
         }
-
+        
         private uint RGB555_to_Hex(ushort RGB)
         {
             uint r = (uint)((RGB >> (10)) & 31);
@@ -171,6 +180,276 @@ namespace AC_Texture_Editor
             uint B = b * 255 / 31;
 
             return (R << 16) | (G << 8) | B;
+        }
+        
+        private void RGB555_to_RGB888(ushort RGB, out byte Red, out byte Green, out byte Blue)
+        {
+            uint r = (uint)((RGB >> (10)) & 31);
+            uint g = (uint)((RGB >> 5) & 31);
+            uint b = (uint)(RGB & 31);
+            uint R = r * 255 / 31;
+            uint G = g * 255 / 31;
+            uint B = b * 255 / 31;
+
+            Red = (byte)R;
+            Green = (byte)G;
+            Blue = (byte)B;
+        }
+
+        private ushort RGB888_to_RGB555(byte R, byte G, byte B)
+        {
+            R = (byte)(R * 31 / 255);
+            G = (byte)(G * 31 / 255);
+            B = (byte)(B * 31 / 255);
+
+            return (ushort)(R << 10 | G << 5 | B);
+        }
+
+        //Trying RGB655
+        private void RGB565_to_RGB888(ushort RGB, out byte Red, out byte Green, out byte Blue)
+        {
+            byte R = (byte)((RGB >> 10) & 0x3F);
+            byte G = (byte)((RGB >> 5) & 0x1F);
+            byte B = (byte)(RGB & 0x1F);
+
+            Red = (byte)((R << 2) | (R >> 4));
+            Green = (byte)((G << 3) | (G >> 2));
+            Blue = (byte)((B << 3) | (B >> 2));
+        }
+
+        private void MousePosition_to_Coordinates(MouseEventArgs e, out int X, out int Y)
+        {
+            if (File_Type == 1 || File_Type == 2)
+            {
+                X = (int)e.GetPosition(SelectedImage).X / 16;
+                Y = (int)e.GetPosition(SelectedImage).Y / 16;
+            }
+            else if (File_Type == 3 || File_Type == 4)
+            {
+                X = (int)e.GetPosition(SelectedImage).X / 8;
+                Y = (int)e.GetPosition(SelectedImage).Y / 8;
+            }
+            else
+            {
+                X = 0;
+                Y = 0;
+            }
+        }
+
+        private void Paint(int X, int Y)
+        {
+            int Data_Index = X / 2 + Y * (SelectedEntry.Image_Width / 2);
+
+            // Is it a left or right pixel?
+            if (X % 2 == 0)
+            {
+                SelectedEntry.Organized_Data[Data_Index] = (byte)((SelectedColor << 4) + (SelectedEntry.Organized_Data[Data_Index] & 0x0F));
+            }
+            else
+            {
+                SelectedEntry.Organized_Data[Data_Index] = (byte)((SelectedEntry.Organized_Data[Data_Index] & 0xF0) + SelectedColor);
+            }
+
+            SelectedEntry.Raw_Data = TextureUtility.Encode(SelectedEntry.Organized_Data);
+
+            // Redraw bitmap
+            SelectedEntry.Texture = TextureUtility.GenerateBitmap(SelectedEntry.Raw_Data, SelectedEntry.Palette, SelectedEntry.Sections, SelectedEntry.Blocks,
+                SelectedEntry.Width, SelectedEntry.Image_Width, SelectedEntry.Image_Height);
+
+            SelectedImage.Source = BitmapSourceFromBitmap(SelectedEntry.Texture);
+            PopulateTreeView(TextureEntries);
+        }
+
+        private void CanvasGrid_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (SelectedEntry != null)
+            {
+                MousePosition_to_Coordinates(e, out int X, out int Y);
+                PositionLabel.Content = string.Format("X: {0} Y: {1}", X, Y);
+                if (Mouse_Down && (Last_X != X || Last_Y != Y))
+                {
+                    Paint(X, Y);
+                    Last_X = X;
+                    Last_Y = Y;
+                }
+            }
+        }
+
+        private void CanvasGrid_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (SelectedEntry != null)
+            {
+                Mouse_Down = true;
+                MousePosition_to_Coordinates(e, out int X, out int Y);
+                Last_X = X;
+                Last_Y = Y;
+                Paint(X, Y);
+            }
+        }
+
+        private void CanvasGrid_MouseUp(object sender, MouseEventArgs e)
+        {
+            Mouse_Down = false;
+        }
+
+        private void CanvasMouseButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (SelectedEntry != null)
+            {
+                string Idx = (sender as Canvas).Name.Substring(7);
+                if (int.TryParse(Idx, out int Palette_Index))
+                {
+                    SetPaletteColor(Palette_Index);
+                }
+            }
+        }
+
+        private void SetPaletteColor(int Index)
+        {
+            SelectedColor = Index;
+            RGB555_to_RGB888(SelectedEntry.Palette[Index], out byte Red, out byte Green, out byte Blue);
+
+            redBox.Text = Red.ToString();
+            redSlider.Value = Red;
+            greenBox.Text = Green.ToString();
+            greenSlider.Value = Green;
+            blueBox.Text = Blue.ToString();
+            blueSlider.Value = Blue;
+
+            rgbBox.Text = SelectedEntry.Palette[Index].ToString("X4");
+
+            ColorPreview.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(Red, Green, Blue));
+        }
+
+        private void SetPaletteColorRGB(byte R, byte G, byte B)
+        {
+            ColorPreview.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(R, G, B));
+        }
+
+        private static bool IsTextAllowed(string text)
+        {
+            return !new Regex("[^0-9.-]+").IsMatch(text);
+        }
+
+        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (Setting_Color)
+                return;
+
+            if (SelectedEntry != null)
+            {
+
+                Setting_Color = true;
+                Slider slider = sender as Slider;
+                byte Value = (byte)e.NewValue;
+                if (slider == redSlider)
+                {
+                    redBox.Text = Value.ToString();
+                }
+                else if (slider == greenSlider)
+                {
+                    greenBox.Text = Value.ToString();
+
+                }
+                else if (slider == blueSlider)
+                {
+                    blueBox.Text = Value.ToString();
+                }
+                ushort Color = RGB888_to_RGB555(byte.Parse(redBox.Text), byte.Parse(greenBox.Text), byte.Parse(blueBox.Text));
+                rgbBox.Text = Color.ToString("X4");
+                SetPaletteColorRGB(byte.Parse(redBox.Text), byte.Parse(greenBox.Text), byte.Parse(blueBox.Text));
+                Setting_Color = false;
+            }
+        }
+
+        private void sliderBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (Setting_Color)
+                return;
+
+            if (SelectedEntry != null)
+            {
+                TextBox Box = sender as TextBox;
+                if (!IsTextAllowed(Box.Text))
+                {
+                    e.Handled = false;
+                }
+                else
+                {
+                    if (byte.TryParse(Box.Text, out byte Value))
+                    {
+                        Setting_Color = true;
+                        ushort Color = RGB888_to_RGB555(byte.Parse(redBox.Text), byte.Parse(greenBox.Text), byte.Parse(blueBox.Text));
+                        if (Box == redBox)
+                        {
+                            redSlider.Value = Value;
+                        }
+                        else if (Box == greenBox)
+                        {
+                            greenSlider.Value = Value;
+                        }
+                        else if (Box == blueBox)
+                        {
+                            blueSlider.Value = Value;
+                        }
+                        rgbBox.Text = Color.ToString("X4");
+                        SetPaletteColorRGB(byte.Parse(redBox.Text), byte.Parse(greenBox.Text), byte.Parse(blueBox.Text));
+                        Setting_Color = false;
+                    }
+                }
+            }
+        }
+
+        private void rgbBox_PreviewTextInput(object sender, TextChangedEventArgs e)
+        {
+            if (Setting_Color)
+                return;
+
+            rgbBox.Text = rgbBox.Text.ToUpper();
+            if (SelectedEntry != null && ushort.TryParse(rgbBox.Text, NumberStyles.AllowHexSpecifier, null, out ushort Color))
+            {
+                Setting_Color = true;
+                RGB555_to_RGB888(Color, out byte R, out byte G, out byte B);
+                SetPaletteColorRGB(R, G, B);
+                RGBBox_LastText = rgbBox.Text;
+                redBox.Text = R.ToString();
+                redSlider.Value = R;
+                greenBox.Text = G.ToString();
+                greenSlider.Value = G;
+                blueBox.Text = B.ToString();
+                blueSlider.Value = B;
+                Setting_Color = false;
+            }
+            else if (!string.IsNullOrEmpty(rgbBox.Text))
+            {
+                rgbBox.Text = RGBBox_LastText;
+            }
+            else
+            {
+                RGBBox_LastText = "";
+            }
+            rgbBox.SelectionStart = rgbBox.Text.Length;
+            rgbBox.SelectionLength = 0;
+        }
+
+        private void SetColorButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (SelectedEntry != null && ushort.TryParse(rgbBox.Text, NumberStyles.AllowHexSpecifier, null, out ushort Color))
+            {
+                for (int i = 0; i < SelectedEntry.Parent.Subentries.Length; i++)
+                {
+                    TextureEntry Current_Entry = SelectedEntry.Parent.Subentries[i];
+                    Current_Entry.Palette[SelectedColor] = Color;
+                    Current_Entry.Texture = TextureUtility.GenerateBitmap(Current_Entry.Raw_Data, Current_Entry.Palette, Current_Entry.Sections,
+                        Current_Entry.Blocks, Current_Entry.Width, Current_Entry.Image_Width, Current_Entry.Image_Height);
+                }
+                // Redraw TreeView
+                PopulateTreeView(TextureEntries);
+
+                // Reload Current Bitmap & Palette
+                SelectedImage.Source = BitmapSourceFromBitmap(SelectedEntry.Texture);
+                Set_Palette_Colors(SelectedEntry.Palette);
+            }
         }
 
         private void ImportOverSelected_Click(object sender, RoutedEventArgs e)
@@ -436,6 +715,20 @@ namespace AC_Texture_Editor
                         Set_Palette_Colors(TextureEntries[0].Subentries[0].Palette);
                         SelectedEntry = TextureEntries[0].Subentries[0];
                         SelectedLabel.Content = string.Format("{0} - {1}", SelectedEntry.Parent.Texture_Name, SelectedEntry.Entry_Index);
+                        SetPaletteColor(0);
+
+                        // Enable Controls
+                        Import.IsEnabled = true;
+                        Dump.IsEnabled = true;
+                        DumpAll.IsEnabled = true;
+                        redSlider.IsEnabled = true;
+                        greenSlider.IsEnabled = true;
+                        blueSlider.IsEnabled = true;
+                        redBox.IsEnabled = true;
+                        greenBox.IsEnabled = true;
+                        blueBox.IsEnabled = true;
+                        rgbBox.IsEnabled = true;
+                        SetColorButton.IsEnabled = true;
                     }
                     else
                     {

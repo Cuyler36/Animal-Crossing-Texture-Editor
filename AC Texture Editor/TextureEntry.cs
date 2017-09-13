@@ -14,6 +14,7 @@ namespace AC_Texture_Editor
         public Bitmap Palette_Bitmap;
         public ushort[] Palette;
         public byte[] Raw_Data; // Data is in AC format
+        public byte[] Organized_Data;
         public int Texture_Offset;
         public int Palette_Offset;
         public int Sections;
@@ -52,6 +53,7 @@ namespace AC_Texture_Editor
             Image_Height = Size_Y;
             Palette = TextureUtility.CondensePalette(Palette_Data);
             Raw_Data = Texture_Data;
+            Organized_Data = TextureUtility.Swap_Pattern(Raw_Data, Sections, Blocks, Width);
             Texture = TextureUtility.GenerateBitmap(Raw_Data, Palette, Sections, Blocks, Width, Image_Width, Image_Height);
             Palette_Bitmap = TextureUtility.DrawPalette(Palette);
 

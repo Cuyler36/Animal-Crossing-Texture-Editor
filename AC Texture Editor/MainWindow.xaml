@@ -5,9 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AC_Texture_Editor"
         mc:Ignorable="d"
-        Title="Animal Crossing Texture Editor" Height="662" Width="797.098" ResizeMode="CanMinimize">
+        Title="Animal Crossing Texture Editor" Height="662" Width="870" ResizeMode="CanMinimize">
     <Grid>
-        <DockPanel Grid.RowSpan="2">
+        <DockPanel Height="20" VerticalAlignment="Top">
             <Menu DockPanel.Dock="Top">
                 <MenuItem Header="_File">
                     <MenuItem Header="_Open" Click="Open_Click"/>
@@ -15,17 +15,15 @@
                     <MenuItem Header="_Save As" Click="SaveAs_Click"/>
                 </MenuItem>
                 <MenuItem Header="_Texture">
-                    <MenuItem Header="_Import Over Selected" Click="ImportOverSelected_Click"/>
-                    <MenuItem Header="_Dump Selected" Click="DumpSelected_Click"/>
-                    <MenuItem Header="_Dump All" Click="DumpAll_Click"/>
+                    <MenuItem x:Name="Import" Header="_Import Over Selected" IsEnabled="False" Click="ImportOverSelected_Click"/>
+                    <MenuItem x:Name="Dump" Header="_Dump Selected" IsEnabled="False" Click="DumpSelected_Click"/>
+                    <MenuItem x:Name="DumpAll" Header="_Dump All" IsEnabled="False" Click="DumpAll_Click"/>
                 </MenuItem>
             </Menu>
-            <StackPanel>
-            </StackPanel>
         </DockPanel>
-        <Label x:Name="SelectedLabel" Content="" Height="28" Margin="19,37,260,568" HorizontalContentAlignment="Center"/>
+        <Label x:Name="SelectedLabel" Content="" Margin="0,0,333,568" HorizontalContentAlignment="Center" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="512"/>
         <Image x:Name="SelectedImage" RenderOptions.BitmapScalingMode="NearestNeighbor" Margin="19,19,0,0" HorizontalAlignment="Left" Height="512" Width="512"/>
-        <Canvas x:Name="ImageGridCanvas" Margin="19,39,0,20" HorizontalAlignment="Left" Width="512" Height="512">
+        <Canvas x:Name="ImageGridCanvas" MouseDown="CanvasGrid_MouseDown" MouseUp="CanvasGrid_MouseUp" MouseMove="CanvasGrid_MouseMove" Margin="19,39,0,20" HorizontalAlignment="Left" Width="512" Height="512">
             <Canvas.Background>
                 <DrawingBrush TileMode="Tile" Viewport="0,0,8,8" 
                                      ViewportUnits="Absolute">
@@ -42,62 +40,78 @@
                 </DrawingBrush>
             </Canvas.Background>
         </Canvas>
-        <TreeView x:Name="EntryTreeView" HorizontalAlignment="Left" VerticalAlignment="Top" Width="160" Height="603" Margin="619,20,0,0"/>
-        <DockPanel LastChildFill="False"  Width="512" Margin="19,0,0,25" Height="16" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+        <TreeView x:Name="EntryTreeView" HorizontalAlignment="Left" VerticalAlignment="Top" Width="160" Height="603" Margin="694,20,0,0"/>
+        <DockPanel LastChildFill="False"  Width="512" Margin="19,0,0,15" Height="16" VerticalAlignment="Bottom" HorizontalAlignment="Left">
             <DockPanel.Resources>
                 <Style TargetType="{x:Type Border}">
                     <Setter Property="Margin" Value="15,0,0,0"/>
                 </Style>
             </DockPanel.Resources>
             <Border   BorderBrush="Black" Height="16" Width="16"  BorderThickness="1">
-                <Canvas x:Name="Palette0" Height="14" Width="14" Background="White"/>
+                <Canvas x:Name="Palette0" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
-            <Border BorderBrush="Black"  BorderThickness="1"  Width="16" Height="16" >
-                <Canvas x:Name="Palette1" Height="14" Width="14" Background="White"/>
+            <Border BorderBrush="Black"  BorderThickness="1"  Width="16" Height="16">
+                <Canvas x:Name="Palette1" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
             <Border BorderBrush="Black" Height="16" Width="16"  BorderThickness="1"  Grid.RowSpan="2" >
-                <Canvas x:Name="Palette2" Height="14" Width="14" Background="White"/>
+                <Canvas x:Name="Palette2" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
             <Border BorderBrush="Black" Height="16" Width="16"  BorderThickness="1" Grid.Row="1"  >
-                <Canvas x:Name="Palette3" Height="14" Width="14" Background="White"/>
+                <Canvas x:Name="Palette3" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
             <Border BorderBrush="Black" Height="16" Width="16"  BorderThickness="1" Grid.Row="1"  >
-                <Canvas x:Name="Palette4" Height="14" Width="14" Background="White"/>
+                <Canvas x:Name="Palette4" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
             <Border BorderBrush="Black" Height="16" Width="16"  BorderThickness="1" Grid.Row="1"  >
-                <Canvas x:Name="Palette5" Height="14" Width="14" Background="White"/>
+                <Canvas x:Name="Palette5" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
             <Border BorderBrush="Black" Height="16" Width="16"  BorderThickness="1" Grid.Row="1"  >
-                <Canvas x:Name="Palette6" Height="14" Width="14" Background="White"/>
+                <Canvas x:Name="Palette6" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
             <Border BorderBrush="Black" Height="16" Width="16"  BorderThickness="1" Grid.Row="1"  >
-                <Canvas x:Name="Palette7" Height="14" Width="14" Background="White"/>
+                <Canvas x:Name="Palette7" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
             <Border BorderBrush="Black" Height="16" Width="16"  BorderThickness="1" Grid.Row="1"  >
-                <Canvas x:Name="Palette8" Height="14" Width="14" Background="White"/>
+                <Canvas x:Name="Palette8" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
             <Border BorderBrush="Black" Height="16" Width="16"  BorderThickness="1" Grid.Row="1"  >
-                <Canvas x:Name="Palette9" Height="14" Width="14" Background="White"/>
+                <Canvas x:Name="Palette9" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
             <Border BorderBrush="Black" Height="16" Width="16"  BorderThickness="1" Grid.Row="1"  >
-                <Canvas x:Name="Palette10" Height="14" Width="14" Background="White"/>
+                <Canvas x:Name="Palette10" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
             <Border BorderBrush="Black" Height="16" Width="16"  BorderThickness="1" Grid.Row="1"  >
-                <Canvas x:Name="Palette11" Height="14" Width="14" Background="White"/>
+                <Canvas x:Name="Palette11" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
             <Border BorderBrush="Black" Height="16" Width="16"  BorderThickness="1" Grid.Row="1"  >
-                <Canvas x:Name="Palette12" Height="14" Width="14" Background="White"/>
+                <Canvas x:Name="Palette12" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
             <Border BorderBrush="Black" Height="16" Width="16"  BorderThickness="1" Grid.Row="1"  >
-                <Canvas x:Name="Palette13" Height="14" Width="14" Background="White"/>
+                <Canvas x:Name="Palette13" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
             <Border BorderBrush="Black" Height="16" Width="16"  BorderThickness="1" Grid.Row="1"  >
-                <Canvas x:Name="Palette14" Height="14" Width="14" Background="White"/>
+                <Canvas x:Name="Palette14" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
             <Border BorderBrush="Black" Height="16" Width="16"  BorderThickness="1" Grid.Row="1"  >
-                <Canvas x:Name="Palette15" Height="14" Width="14" Background="White"/>
+                <Canvas x:Name="Palette15" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
         </DockPanel>
-
+        <Label x:Name="label" Content="Selected Color" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Margin="536,70,0,0" VerticalAlignment="Top" Width="153"/>
+        <Slider x:Name="redSlider" IsEnabled="False" HorizontalAlignment="Left" Margin="582,101,0,0" VerticalAlignment="Top" Width="51" Maximum="255" ValueChanged="Slider_ValueChanged"/>
+        <Slider x:Name="greenSlider" IsEnabled="False" HorizontalAlignment="Left" Margin="582,124,0,0" VerticalAlignment="Top" Width="51" Maximum="255" ValueChanged="Slider_ValueChanged"/>
+        <Slider x:Name="blueSlider" IsEnabled="False" HorizontalAlignment="Left" Margin="582,147,0,0" VerticalAlignment="Top" Width="51" Maximum="255" ValueChanged="Slider_ValueChanged"/>
+        <TextBox x:Name="redBox" IsEnabled="False" HorizontalAlignment="Left" Height="18" Margin="638,101,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" MaxLength="3" Width="30" TextChanged="sliderBox_TextChanged"/>
+        <TextBox x:Name="greenBox" IsEnabled="False" HorizontalAlignment="Left" Height="18" Margin="638,124,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" MaxLength="3" Width="30" TextChanged="sliderBox_TextChanged"/>
+        <TextBox x:Name="blueBox" IsEnabled="False" HorizontalAlignment="Left" Height="18" Margin="638,147,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" MaxLength="3" Width="30" TextChanged="sliderBox_TextChanged"/>
+        <Label x:Name="label1" Content="Red:" Margin="542,97,0,0" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Width="33" Height="26" VerticalAlignment="Top"/>
+        <Label x:Name="label1_Copy" Content="Green:" Margin="531,120,0,0" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Height="24" VerticalAlignment="Top"/>
+        <Label x:Name="label1_Copy1" Content="Blue:" Margin="542,143,0,0" HorizontalContentAlignment="Right" Height="24" VerticalAlignment="Top" HorizontalAlignment="Left" Width="35"/>
+        <Label x:Name="label2" Content="RGB555:" HorizontalAlignment="Left" Margin="542,183,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="rgbBox" IsEnabled="False" HorizontalAlignment="Left" Height="18" Margin="601,188,0,0" TextWrapping="Wrap" Text="FFFF" VerticalAlignment="Top" Width="40" MaxLength="4" TextChanged="rgbBox_PreviewTextInput"/>
+        <Border BorderBrush="Black" HorizontalAlignment="Left" Height="32" Margin="595,214,0,0" Width="32" VerticalAlignment="Top" BorderThickness="1">
+            <Canvas x:Name="ColorPreview" HorizontalAlignment="Left" Height="30" Width="30"/>
+        </Border>
+        <Button x:Name="SetColorButton" IsEnabled="False" Content="Set Color" HorizontalAlignment="Left" Margin="574,251,0,0" VerticalAlignment="Top" Width="75" Click="SetColorButton_Click"/>
+        <Label x:Name="PositionLabel" HorizontalContentAlignment="Right" VerticalContentAlignment="Bottom" Content="X: 0 Y: 0" HorizontalAlignment="Left" Margin="19,44,0,0" VerticalAlignment="Top" Width="512"/>
     </Grid>
 </Window>
