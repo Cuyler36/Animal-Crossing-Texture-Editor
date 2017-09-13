@@ -257,7 +257,6 @@ namespace AC_Texture_Editor
                 SelectedEntry.Width, SelectedEntry.Image_Width, SelectedEntry.Image_Height);
 
             SelectedImage.Source = BitmapSourceFromBitmap(SelectedEntry.Texture);
-            PopulateTreeView(TextureEntries);
         }
 
         private void CanvasGrid_MouseMove(object sender, MouseEventArgs e)
@@ -266,7 +265,7 @@ namespace AC_Texture_Editor
             {
                 MousePosition_to_Coordinates(e, out int X, out int Y);
                 PositionLabel.Content = string.Format("X: {0} Y: {1}", X, Y);
-                if (Mouse_Down && (Last_X != X || Last_Y != Y))
+                if (Mouse_Down && (Last_X != X || Last_Y != Y) && X < SelectedEntry.Image_Width)
                 {
                     Paint(X, Y);
                     Last_X = X;
@@ -290,6 +289,8 @@ namespace AC_Texture_Editor
         private void CanvasGrid_MouseUp(object sender, MouseEventArgs e)
         {
             Mouse_Down = false;
+            if (TextureEntries != null)
+                PopulateTreeView(TextureEntries);
         }
 
         private void CanvasMouseButtonDown(object sender, MouseButtonEventArgs e)

@@ -23,7 +23,7 @@
         </DockPanel>
         <Label x:Name="SelectedLabel" Content="" Margin="0,0,333,568" HorizontalContentAlignment="Center" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="512"/>
         <Image x:Name="SelectedImage" RenderOptions.BitmapScalingMode="NearestNeighbor" Margin="19,19,0,0" HorizontalAlignment="Left" Height="512" Width="512"/>
-        <Canvas x:Name="ImageGridCanvas" MouseDown="CanvasGrid_MouseDown" MouseUp="CanvasGrid_MouseUp" MouseMove="CanvasGrid_MouseMove" Margin="19,39,0,20" HorizontalAlignment="Left" Width="512" Height="512">
+        <Canvas x:Name="ImageGridCanvas" MouseLeave="CanvasGrid_MouseUp" MouseDown="CanvasGrid_MouseDown" MouseUp="CanvasGrid_MouseUp" MouseMove="CanvasGrid_MouseMove" Margin="19,39,0,20" HorizontalAlignment="Left" Width="512" Height="512">
             <Canvas.Background>
                 <DrawingBrush TileMode="Tile" Viewport="0,0,8,8" 
                                      ViewportUnits="Absolute">
