@@ -11,6 +11,58 @@ namespace AC_Texture_Editor
 {
     public static class TextureUtility
     {
+        /// <summary>
+        /// Converts RGB5A3 to RGBA8. If highest bit is set then the pixel has no alpha channel.
+        /// </summary>
+        /// <param name="pixel">RGB5A3 ushort</param>
+        /// <param name="A">Returned Alpha value</param>
+        /// <param name="R">Returned Red value</param>
+        /// <param name="G">Returned Green value</param>
+        /// <param name="B">Returned Blue valuer</param>
+        public static void RGB5A3_to_RGBA8(ushort pixel, out byte A, out byte R, out byte G, out byte B)
+        {
+            if ((pixel & 0x8000) == 0x8000)
+            {
+                // No Alpha Channel
+                A = 0xFF;
+
+                // Separate RGB from bits
+                R = (byte)((pixel & 0x7C00) >> 10);
+                G = (byte)((pixel & 0x03E0) >> 5);
+                B = (byte)(pixel & 0x001F);
+
+                // Convert to RGB8 values
+                R = (byte)((R << (8 - 5)) | (R >> (10 - 8)));
+                G = (byte)((G << (8 - 5)) | (G >> (10 - 8)));
+                B = (byte)((B << (8 - 5)) | (B >> (10 - 8)));
+            }
+            else
+            {
+                // An Alpha Channel Exists, 3 bits for Alpha Channel and 4 bits each for RGB
+                A = (byte)((pixel & 0x7000) >> 12);
+                R = (byte)((pixel & 0x0F00) >> 8);
+                G = (byte)((pixel & 0x00F0) >> 4);
+                B = (byte)(pixel & 0x000F);
+
+                A = (byte)((A << (8 - 3)) | (A << (8 - 6)) | (A >> (9 - 8)));
+                R = (byte)((R << (8 - 4)) | R);
+                G = (byte)((G << (8 - 4)) | G);
+                B = (byte)((B << (8 - 4)) | B);
+            }
+        }
+
+        public static ushort RGBA8_to_RGB5A3(byte A, byte R, byte G, byte B)
+        {
+            if (A >= 0xE0)
+            {
+                return (ushort)(0x8000 | (((R & 0xF8) << 7) | ((G & 0xF8) << 2) | (B >> 3)));
+            }
+            else
+            {
+                return (ushort)(((A & 0xE0) << 7) | ((R & 0xF0) << 4) | (G & 0xF0) | ((B & 0xF0) >> 4));
+            }
+        }
+
         //TODO: Fix data being jumbled (probably a problem in Swap_Pattern)
         public static ushort[] DumpBitmap(Bitmap Texture, int Width)
         {

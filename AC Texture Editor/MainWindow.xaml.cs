@@ -47,10 +47,18 @@ namespace AC_Texture_Editor
         private string RGBBox_LastText = "";
         private int Last_X = -1;
         private int Last_Y = -1;
-
+        private Canvas[] Palette_Objects;
         public MainWindow()
         {
             InitializeComponent();
+
+            Palette_Objects = new Canvas[16]
+            {
+                Palette0, Palette1, Palette2, Palette3,
+                Palette4, Palette5, Palette6, Palette7,
+                Palette8, Palette9, Palette10, Palette11,
+                Palette12, Palette13, Palette14, Palette15
+            };
 
             Shirt_Brush.TileMode = TileMode.Tile;
             FloorCarpet_Brush.TileMode = TileMode.Tile;
@@ -137,7 +145,8 @@ namespace AC_Texture_Editor
             uint[] Hex_Palette = new uint[Palette.Length];
             for (int i = 0; i < Palette.Length; i++)
             {
-                Hex_Palette[i] = 0xFF000000 + RGB555_to_Hex(Palette[i]);
+                TextureUtility.RGB5A3_to_RGBA8(Palette[i], out byte A, out byte R, out byte G, out byte B);
+                Hex_Palette[i] = (uint)((A << 24) | (R << 16) | (G << 8) | B);
             }
 
             Palette0.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[0] >> 16), (byte)(Hex_Palette[0] >> 8), (byte)(Hex_Palette[0])));
@@ -158,76 +167,17 @@ namespace AC_Texture_Editor
             Palette15.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[15] >> 16), (byte)(Hex_Palette[15] >> 8), (byte)(Hex_Palette[15])));
         }
 
-        private ushort Hex_to_RGB555(uint Hex)
-        {
-            uint R = (Hex >> 16) & 0xFF;
-            uint G = (Hex >> 8) & 0xFF;
-            uint B = Hex & 0xFF;
-            uint r = R * 31 / 255;
-            uint g = G * 31 / 255;
-            uint b = B * 31 / 255;
-
-            return (ushort)(r << (10) | (g << 5) | b);
-        }
-        
-        private uint RGB555_to_Hex(ushort RGB)
-        {
-            uint r = (uint)((RGB >> (10)) & 31);
-            uint g = (uint)((RGB >> 5) & 31);
-            uint b = (uint)(RGB & 31);
-            uint R = r * 255 / 31;
-            uint G = g * 255 / 31;
-            uint B = b * 255 / 31;
-
-            return (R << 16) | (G << 8) | B;
-        }
-        
-        private void RGB555_to_RGB888(ushort RGB, out byte Red, out byte Green, out byte Blue)
-        {
-            uint r = (uint)((RGB >> (10)) & 31);
-            uint g = (uint)((RGB >> 5) & 31);
-            uint b = (uint)(RGB & 31);
-            uint R = r * 255 / 31;
-            uint G = g * 255 / 31;
-            uint B = b * 255 / 31;
-
-            Red = (byte)R;
-            Green = (byte)G;
-            Blue = (byte)B;
-        }
-
-        private ushort RGB888_to_RGB555(byte R, byte G, byte B)
-        {
-            R = (byte)(R * 31 / 255);
-            G = (byte)(G * 31 / 255);
-            B = (byte)(B * 31 / 255);
-
-            return (ushort)(R << 10 | G << 5 | B);
-        }
-
-        //Trying RGB655
-        private void RGB565_to_RGB888(ushort RGB, out byte Red, out byte Green, out byte Blue)
-        {
-            byte R = (byte)((RGB >> 10) & 0x3F);
-            byte G = (byte)((RGB >> 5) & 0x1F);
-            byte B = (byte)(RGB & 0x1F);
-
-            Red = (byte)((R << 2) | (R >> 4));
-            Green = (byte)((G << 3) | (G >> 2));
-            Blue = (byte)((B << 3) | (B >> 2));
-        }
-
         private void MousePosition_to_Coordinates(MouseEventArgs e, out int X, out int Y)
         {
             if (File_Type == 1 || File_Type == 2)
             {
-                X = (int)e.GetPosition(SelectedImage).X / 16;
-                Y = (int)e.GetPosition(SelectedImage).Y / 16;
+                X = Math.Min((int)e.GetPosition(SelectedImage).X / 16, SelectedEntry.Image_Width - 1);
+                Y = Math.Min((int)e.GetPosition(SelectedImage).Y / 16, SelectedEntry.Image_Height - 1);
             }
             else if (File_Type == 3 || File_Type == 4)
             {
-                X = (int)e.GetPosition(SelectedImage).X / 8;
-                Y = (int)e.GetPosition(SelectedImage).Y / 8;
+                X = Math.Min((int)e.GetPosition(SelectedImage).X / 8, SelectedEntry.Image_Width - 1);
+                Y = Math.Min((int)e.GetPosition(SelectedImage).Y / 8, SelectedEntry.Image_Height - 1);
             }
             else
             {
@@ -308,7 +258,8 @@ namespace AC_Texture_Editor
         private void SetPaletteColor(int Index)
         {
             SelectedColor = Index;
-            RGB555_to_RGB888(SelectedEntry.Palette[Index], out byte Red, out byte Green, out byte Blue);
+            Setting_Color = true;
+            TextureUtility.RGB5A3_to_RGBA8(SelectedEntry.Palette[Index], out byte Alpha, out byte Red, out byte Green, out byte Blue);
 
             redBox.Text = Red.ToString();
             redSlider.Value = Red;
@@ -316,10 +267,13 @@ namespace AC_Texture_Editor
             greenSlider.Value = Green;
             blueBox.Text = Blue.ToString();
             blueSlider.Value = Blue;
+            transparencyBox.Text = Alpha.ToString();
+            transparencySlider.Value = Alpha;
 
             rgbBox.Text = SelectedEntry.Palette[Index].ToString("X4");
 
             ColorPreview.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(Red, Green, Blue));
+            Setting_Color = false;
         }
 
         private void SetPaletteColorRGB(byte R, byte G, byte B)
@@ -356,7 +310,11 @@ namespace AC_Texture_Editor
                 {
                     blueBox.Text = Value.ToString();
                 }
-                ushort Color = RGB888_to_RGB555(byte.Parse(redBox.Text), byte.Parse(greenBox.Text), byte.Parse(blueBox.Text));
+                else if (slider == transparencySlider)
+                {
+                    transparencyBox.Text = Value.ToString();
+                }
+                ushort Color = TextureUtility.RGBA8_to_RGB5A3(byte.Parse(transparencyBox.Text), byte.Parse(redBox.Text), byte.Parse(greenBox.Text), byte.Parse(blueBox.Text));
                 rgbBox.Text = Color.ToString("X4");
                 SetPaletteColorRGB(byte.Parse(redBox.Text), byte.Parse(greenBox.Text), byte.Parse(blueBox.Text));
                 Setting_Color = false;
@@ -380,7 +338,7 @@ namespace AC_Texture_Editor
                     if (byte.TryParse(Box.Text, out byte Value))
                     {
                         Setting_Color = true;
-                        ushort Color = RGB888_to_RGB555(byte.Parse(redBox.Text), byte.Parse(greenBox.Text), byte.Parse(blueBox.Text));
+                        ushort Color = TextureUtility.RGBA8_to_RGB5A3(byte.Parse(transparencyBox.Text), byte.Parse(redBox.Text), byte.Parse(greenBox.Text), byte.Parse(blueBox.Text));
                         if (Box == redBox)
                         {
                             redSlider.Value = Value;
@@ -392,6 +350,10 @@ namespace AC_Texture_Editor
                         else if (Box == blueBox)
                         {
                             blueSlider.Value = Value;
+                        }
+                        else if (Box == transparencyBox)
+                        {
+                            transparencySlider.Value = Value;
                         }
                         rgbBox.Text = Color.ToString("X4");
                         SetPaletteColorRGB(byte.Parse(redBox.Text), byte.Parse(greenBox.Text), byte.Parse(blueBox.Text));
@@ -410,7 +372,7 @@ namespace AC_Texture_Editor
             if (SelectedEntry != null && ushort.TryParse(rgbBox.Text, NumberStyles.AllowHexSpecifier, null, out ushort Color))
             {
                 Setting_Color = true;
-                RGB555_to_RGB888(Color, out byte R, out byte G, out byte B);
+                TextureUtility.RGB5A3_to_RGBA8(Color, out byte A, out byte R, out byte G, out byte B);
                 SetPaletteColorRGB(R, G, B);
                 RGBBox_LastText = rgbBox.Text;
                 redBox.Text = R.ToString();
@@ -419,6 +381,8 @@ namespace AC_Texture_Editor
                 greenSlider.Value = G;
                 blueBox.Text = B.ToString();
                 blueSlider.Value = B;
+                transparencyBox.Text = A.ToString();
+                transparencySlider.Value = A;
                 Setting_Color = false;
             }
             else if (!string.IsNullOrEmpty(rgbBox.Text))
@@ -725,9 +689,11 @@ namespace AC_Texture_Editor
                         redSlider.IsEnabled = true;
                         greenSlider.IsEnabled = true;
                         blueSlider.IsEnabled = true;
+                        transparencySlider.IsEnabled = true;
                         redBox.IsEnabled = true;
                         greenBox.IsEnabled = true;
                         blueBox.IsEnabled = true;
+                        transparencyBox.IsEnabled = true;
                         rgbBox.IsEnabled = true;
                         SetColorButton.IsEnabled = true;
                     }

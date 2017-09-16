@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AC_Texture_Editor"
         mc:Ignorable="d"
-        Title="Animal Crossing Texture Editor" Height="662" Width="870" ResizeMode="CanMinimize">
+        Title="Animal Crossing Texture Editor" Height="662" Width="934" ResizeMode="CanMinimize">
     <Grid>
         <DockPanel Height="20" VerticalAlignment="Top">
             <Menu DockPanel.Dock="Top">
@@ -40,7 +40,7 @@
                 </DrawingBrush>
             </Canvas.Background>
         </Canvas>
-        <TreeView x:Name="EntryTreeView" HorizontalAlignment="Left" VerticalAlignment="Top" Width="160" Height="603" Margin="694,20,0,0"/>
+        <TreeView x:Name="EntryTreeView" HorizontalAlignment="Left" VerticalAlignment="Top" Width="160" Height="603" Margin="758,20,0,0"/>
         <DockPanel LastChildFill="False"  Width="512" Margin="19,0,0,15" Height="16" VerticalAlignment="Bottom" HorizontalAlignment="Left">
             <DockPanel.Resources>
                 <Style TargetType="{x:Type Border}">
@@ -96,22 +96,25 @@
                 <Canvas x:Name="Palette15" Height="14" Width="14" Background="White" MouseLeftButtonDown="CanvasMouseButtonDown"/>
             </Border>
         </DockPanel>
-        <Label x:Name="label" Content="Selected Color" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Margin="536,70,0,0" VerticalAlignment="Top" Width="153"/>
-        <Slider x:Name="redSlider" IsEnabled="False" HorizontalAlignment="Left" Margin="582,101,0,0" VerticalAlignment="Top" Width="51" Maximum="255" ValueChanged="Slider_ValueChanged"/>
-        <Slider x:Name="greenSlider" IsEnabled="False" HorizontalAlignment="Left" Margin="582,124,0,0" VerticalAlignment="Top" Width="51" Maximum="255" ValueChanged="Slider_ValueChanged"/>
-        <Slider x:Name="blueSlider" IsEnabled="False" HorizontalAlignment="Left" Margin="582,147,0,0" VerticalAlignment="Top" Width="51" Maximum="255" ValueChanged="Slider_ValueChanged"/>
-        <TextBox x:Name="redBox" IsEnabled="False" HorizontalAlignment="Left" Height="18" Margin="638,101,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" MaxLength="3" Width="30" TextChanged="sliderBox_TextChanged"/>
-        <TextBox x:Name="greenBox" IsEnabled="False" HorizontalAlignment="Left" Height="18" Margin="638,124,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" MaxLength="3" Width="30" TextChanged="sliderBox_TextChanged"/>
-        <TextBox x:Name="blueBox" IsEnabled="False" HorizontalAlignment="Left" Height="18" Margin="638,147,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" MaxLength="3" Width="30" TextChanged="sliderBox_TextChanged"/>
-        <Label x:Name="label1" Content="Red:" Margin="542,97,0,0" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Width="33" Height="26" VerticalAlignment="Top"/>
-        <Label x:Name="label1_Copy" Content="Green:" Margin="531,120,0,0" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Height="24" VerticalAlignment="Top"/>
-        <Label x:Name="label1_Copy1" Content="Blue:" Margin="542,143,0,0" HorizontalContentAlignment="Right" Height="24" VerticalAlignment="Top" HorizontalAlignment="Left" Width="35"/>
-        <Label x:Name="label2" Content="RGB555:" HorizontalAlignment="Left" Margin="542,183,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="rgbBox" IsEnabled="False" HorizontalAlignment="Left" Height="18" Margin="601,188,0,0" TextWrapping="Wrap" Text="FFFF" VerticalAlignment="Top" Width="40" MaxLength="4" TextChanged="rgbBox_PreviewTextInput"/>
-        <Border BorderBrush="Black" HorizontalAlignment="Left" Height="32" Margin="595,214,0,0" Width="32" VerticalAlignment="Top" BorderThickness="1">
+        <Label x:Name="label" Content="Selected Color" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Margin="575,71,0,0" VerticalAlignment="Top" Width="153"/>
+        <Slider x:Name="redSlider" IsEnabled="False" HorizontalAlignment="Left" Margin="621,102,0,0" VerticalAlignment="Top" Width="51" Maximum="255" ValueChanged="Slider_ValueChanged"/>
+        <Slider x:Name="greenSlider" IsEnabled="False" HorizontalAlignment="Left" Margin="621,125,0,0" VerticalAlignment="Top" Width="51" Maximum="255" ValueChanged="Slider_ValueChanged"/>
+        <Slider x:Name="blueSlider" IsEnabled="False" HorizontalAlignment="Left" Margin="621,148,0,0" VerticalAlignment="Top" Width="51" Maximum="255" ValueChanged="Slider_ValueChanged"/>
+        <TextBox x:Name="redBox" IsEnabled="False" HorizontalAlignment="Left" Height="18" Margin="677,102,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" MaxLength="3" Width="30" TextChanged="sliderBox_TextChanged"/>
+        <TextBox x:Name="greenBox" IsEnabled="False" HorizontalAlignment="Left" Height="18" Margin="677,125,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" MaxLength="3" Width="30" TextChanged="sliderBox_TextChanged"/>
+        <TextBox x:Name="blueBox" IsEnabled="False" HorizontalAlignment="Left" Height="18" Margin="677,148,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" MaxLength="3" Width="30" TextChanged="sliderBox_TextChanged"/>
+        <Label x:Name="label1" Content="Red:" Margin="581,98,0,0" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Width="33" Height="26" VerticalAlignment="Top"/>
+        <Label x:Name="label1_Copy" Content="Green:" Margin="570,121,0,0" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Height="24" VerticalAlignment="Top"/>
+        <Label x:Name="label1_Copy1" Content="Blue:" Margin="581,144,0,0" HorizontalContentAlignment="Right" Height="24" VerticalAlignment="Top" HorizontalAlignment="Left" Width="35"/>
+        <Label x:Name="label2" Content="RGB555:" HorizontalAlignment="Left" Margin="570,194,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="rgbBox" IsEnabled="False" HorizontalAlignment="Left" Height="18" Margin="629,199,0,0" TextWrapping="Wrap" Text="FFFF" VerticalAlignment="Top" Width="40" MaxLength="4" TextChanged="rgbBox_PreviewTextInput"/>
+        <Border BorderBrush="Black" HorizontalAlignment="Left" Height="32" Margin="623,225,0,0" Width="32" VerticalAlignment="Top" BorderThickness="1">
             <Canvas x:Name="ColorPreview" HorizontalAlignment="Left" Height="30" Width="30"/>
         </Border>
-        <Button x:Name="SetColorButton" IsEnabled="False" Content="Set Color" HorizontalAlignment="Left" Margin="574,251,0,0" VerticalAlignment="Top" Width="75" Click="SetColorButton_Click"/>
+        <Button x:Name="SetColorButton" IsEnabled="False" Content="Set Color" HorizontalAlignment="Left" Margin="602,262,0,0" VerticalAlignment="Top" Width="75" Click="SetColorButton_Click"/>
         <Label x:Name="PositionLabel" HorizontalContentAlignment="Right" VerticalContentAlignment="Bottom" Content="X: 0 Y: 0" HorizontalAlignment="Left" Margin="19,44,0,0" VerticalAlignment="Top" Width="512"/>
+        <Label x:Name="label1_Copy2" Content="Transparency:" Margin="531,165,0,0" HorizontalContentAlignment="Right" Height="29" VerticalAlignment="Top" HorizontalAlignment="Left" Width="85"/>
+        <Slider x:Name="transparencySlider" IsEnabled="False" HorizontalAlignment="Left" Margin="621,171,0,0" VerticalAlignment="Top" Width="51" Maximum="255" ValueChanged="Slider_ValueChanged"/>
+        <TextBox x:Name="transparencyBox" IsEnabled="False" HorizontalAlignment="Left" Height="18" Margin="677,171,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" MaxLength="3" Width="30" TextChanged="sliderBox_TextChanged"/>
     </Grid>
 </Window>
