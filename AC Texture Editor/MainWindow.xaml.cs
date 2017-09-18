@@ -410,8 +410,8 @@ namespace AC_Texture_Editor
             if (Setting_Color)
                 return;
 
-            rgbBox.Text = rgbBox.Text.ToUpper();
-            if (SelectedEntry != null && int.TryParse(rgbBox.Text, NumberStyles.AllowHexSpecifier, null, out int Color))
+            rgba8Box.Text = rgba8Box.Text.ToUpper();
+            if (SelectedEntry != null && int.TryParse(rgba8Box.Text, NumberStyles.AllowHexSpecifier, null, out int Color))
             {
                 Setting_Color = true;
                 byte A = (byte)(Color >> 24);
@@ -422,7 +422,7 @@ namespace AC_Texture_Editor
                 // Reconvert it since we lose some percision with this conversion
                 TextureUtility.RGB5A3_to_RGBA8(UColor, out byte A2, out byte R2, out byte G2, out byte B2);
                 SetPaletteColorARGB(A2, R2, G2, B2);
-                RGBBox_LastText = rgbBox.Text;
+                RGBABox_LastText = rgba8Box.Text;
                 redBox.Text = R2.ToString();
                 redSlider.Value = R2;
                 greenBox.Text = G2.ToString();
@@ -442,8 +442,8 @@ namespace AC_Texture_Editor
             {
                 RGBABox_LastText = "";
             }
-            rgbBox.SelectionStart = rgba8Box.Text.Length;
-            rgbBox.SelectionLength = 0;
+            rgba8Box.SelectionStart = rgba8Box.Text.Length;
+            rgba8Box.SelectionLength = 0;
         }
 
         private void SetColorButton_Click(object sender, RoutedEventArgs e)
@@ -645,7 +645,7 @@ namespace AC_Texture_Editor
                                 int Offset = Face_Offset + 0x100 * Expression;
                                 int Palette_Offset = Face_Offset + 0xE00;
                                 Subentries[Expression] = new TextureEntry(Offset, Face_Offset + 0xE00, 2, 32, 4, 32, 16, Data_Buffer.Skip(Offset).Take(0x100).ToArray(),
-                                    Data_Buffer.Skip(Palette_Offset).Take(0x20).ToArray());
+                                    Data_Buffer.Skip(Palette_Offset).Take(0x20).ToArray(), Expression);
                             }
                             TextureEntries[Face] = new TextureEntry(Subentries);
                             TextureEntries[Face].Texture_Name = ObjectDatabase.Faces[Face];
@@ -679,7 +679,7 @@ namespace AC_Texture_Editor
                                 TextureEntry[] Subentries = new TextureEntry[1];
                                 int Palette_Offset = Shirt * 0x20;
                                 Subentries[0] = new TextureEntry(Shirt_Offset, Palette_Offset, 4, 32, 4, 32, 32, Data_Buffer.Skip(Shirt_Offset).Take(0x200).ToArray(),
-                                    Pallet_Buffer.Skip(Palette_Offset).Take(0x20).ToArray());
+                                    Pallet_Buffer.Skip(Palette_Offset).Take(0x20).ToArray(), 0);
                                 TextureEntries[Shirt] = new TextureEntry(Subentries);
                                 TextureEntries[Shirt].Texture_Name = ObjectDatabase.Shirts[Shirt];
                             }
@@ -700,10 +700,10 @@ namespace AC_Texture_Editor
                                 int Offset = Floor_Offset + 0x20 + 0x800 * Pattern;
                                 int Palette_Offset = Floor_Offset;
                                 Subentries[Pattern] = new TextureEntry(Offset, Floor_Offset, 8, 64, 8, 64, 64, Data_Buffer.Skip(Offset).Take(0x800).ToArray(),
-                                    Data_Buffer.Skip(Palette_Offset).Take(0x20).ToArray());
+                                    Data_Buffer.Skip(Palette_Offset).Take(0x20).ToArray(), Pattern);
                             }
                             TextureEntries[Floor] = new TextureEntry(Subentries);
-                            TextureEntries[Floor].Texture_Name = ObjectDatabase.Carpets[Floor];
+                            TextureEntries[Floor].Texture_Name = TextureEntries.Length == 73 ? ObjectDatabase.e_plus_Carpets[Floor] : ObjectDatabase.Carpets[Floor];
                         }
                         break;
                     case "player_room_wall":
@@ -721,10 +721,10 @@ namespace AC_Texture_Editor
                                 int Offset = Wall_Offset + 0x20 + 0x800 * Pattern;
                                 int Palette_Offset = Wall_Offset;
                                 Subentries[Pattern] = new TextureEntry(Offset, Wall_Offset, 8, 64, 8, 64, 64, Data_Buffer.Skip(Offset).Take(0x800).ToArray(),
-                                    Data_Buffer.Skip(Palette_Offset).Take(0x20).ToArray());
+                                    Data_Buffer.Skip(Palette_Offset).Take(0x20).ToArray(), Pattern);
                             }
                             TextureEntries[Wall] = new TextureEntry(Subentries);
-                            TextureEntries[Wall].Texture_Name = ObjectDatabase.Wallpaper[Wall];
+                            TextureEntries[Wall].Texture_Name = TextureEntries.Length == 73 ? ObjectDatabase.e_plus_Wallpaper[Wall] : ObjectDatabase.Wallpaper[Wall];
                         }
                         break;
                     default:

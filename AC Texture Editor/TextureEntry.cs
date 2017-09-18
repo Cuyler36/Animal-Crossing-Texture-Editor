@@ -39,11 +39,11 @@ namespace AC_Texture_Editor
             for (int i = 0; i < Entries.Length; i++)
             {
                 Entries[i].Parent = this;
-                Entries[i].Entry_Index = i;
+                //Entries[i].Entry_Index = i;
             }
         }
 
-        public TextureEntry(int Texture_Offset, int Palette_Offset, int Sections, int Blocks, int Width, int Size_X, int Size_Y, byte[] Texture_Data, byte[] Palette_Data)
+        public TextureEntry(int Texture_Offset, int Palette_Offset, int Sections, int Blocks, int Width, int Size_X, int Size_Y, byte[] Texture_Data, byte[] Palette_Data, int Index)
         {
             this.Texture_Offset = Texture_Offset;
             this.Palette_Offset = Palette_Offset;
@@ -58,6 +58,7 @@ namespace AC_Texture_Editor
             Organized_Data = TextureUtility.Swap_Pattern(Raw_Data, Sections, Blocks, Width);
             Texture = TextureUtility.GenerateBitmap(Raw_Data, RGBA8_Palette, Sections, Blocks, Width, Image_Width, Image_Height);
             Palette_Bitmap = TextureUtility.DrawPalette(RGBA8_Palette);
+            Entry_Index = Index;
         }
 
         public void Dispose()
