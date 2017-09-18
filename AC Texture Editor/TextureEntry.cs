@@ -13,6 +13,7 @@ namespace AC_Texture_Editor
         public Bitmap Texture;
         public Bitmap Palette_Bitmap;
         public ushort[] Palette;
+        public int[] RGBA8_Palette;
         public byte[] Raw_Data; // Data is in AC format
         public byte[] Organized_Data;
         public int Texture_Offset;
@@ -52,39 +53,11 @@ namespace AC_Texture_Editor
             Image_Width = Size_X;
             Image_Height = Size_Y;
             Palette = TextureUtility.CondensePalette(Palette_Data);
+            RGBA8_Palette = TextureUtility.RGB555A3_to_RGBA8_Palette(Palette);
             Raw_Data = Texture_Data;
             Organized_Data = TextureUtility.Swap_Pattern(Raw_Data, Sections, Blocks, Width);
-            Texture = TextureUtility.GenerateBitmap(Raw_Data, Palette, Sections, Blocks, Width, Image_Width, Image_Height);
-            Palette_Bitmap = TextureUtility.DrawPalette(Palette);
-
-            // Test
-            /*if (Texture_Offset == 0)
-            {
-                int Original_Total = 0;
-                for (int i = 0; i < Texture_Data.Length; i++)
-                {
-                    Original_Total += Texture_Data[i];
-                }
-                int Decoded_Total = 0;
-                byte[] Decoded_Data = TextureUtility.Swap_Pattern(Texture_Data, Sections, Blocks, Width);
-                byte[] Encoded_Data = TextureUtility.Encode(Decoded_Data); //TextureUtility.Swap_Pattern(Decoded_Data, Sections, Blocks, Width, true);
-                for (int i = 0; i < Decoded_Data.Length; i++)
-                {
-                    Decoded_Total += Decoded_Data[i];
-                }
-                System.Windows.Forms.MessageBox.Show("Original Total = Re-encoded Total: " + (Original_Total == Decoded_Total).ToString());
-                using (TextWriter Writer = File.CreateText(@"C:\Users\olsen\Texture_Output.txt"))
-                {
-                    for (int i = 0; i < Encoded_Data.Length; i++)
-                    {
-                        if (Encoded_Data[i] != Texture_Data[i])
-                        {
-                            Writer.WriteLine(string.Format("Re-encoded data failed to matchup! Index: {0} | Block: {1} | Expected: {2} Got: {3}",
-                                i, i / 4, Texture_Data[i].ToString("X2"), Encoded_Data[i].ToString("X2")));
-                        }
-                    }
-                }
-            }*/
+            Texture = TextureUtility.GenerateBitmap(Raw_Data, RGBA8_Palette, Sections, Blocks, Width, Image_Width, Image_Height);
+            Palette_Bitmap = TextureUtility.DrawPalette(RGBA8_Palette);
         }
 
         public void Dispose()
@@ -101,7 +74,7 @@ namespace AC_Texture_Editor
 
             // Write Texture
             Texture_Writer.Seek(Texture_Offset, SeekOrigin.Begin);
-            Texture_Writer.Write(TextureUtility.ConvertRGB555(TextureUtility.DumpBitmap(Texture, Image_Width), Palette, Sections, Blocks, Width));
+            Texture_Writer.Write(Raw_Data);
 
             // Write Palette
             byte[] Palette_Data = new byte[Palette.Length * 2];

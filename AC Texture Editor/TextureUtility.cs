@@ -63,72 +63,38 @@ namespace AC_Texture_Editor
             }
         }
 
-        //TODO: Fix data being jumbled (probably a problem in Swap_Pattern)
-        public static ushort[] DumpBitmap(Bitmap Texture, int Width)
-        {
-            using (MemoryStream Stream = new MemoryStream())
-            {
-                Texture.Save(Stream, ImageFormat.Bmp);
-                byte[] Bitmap_Data = Stream.ToArray().Skip(0x36).ToArray(); // Skip 36 for the bitmap file header
-                ushort[] RGB555_Data = new ushort[Bitmap_Data.Length / 2];
-
-                // Convert data to ushorts and flip it vertically
-                int Idx = 0;
-                for (int i = RGB555_Data.Length - 1; i >= 0; i--)
-                {
-                    RGB555_Data[Idx] = (ushort)((Bitmap_Data[i * 2 + 1] << 8) + Bitmap_Data[i * 2]);
-                    Idx++;
-                }
-                //System.Windows.Forms.MessageBox.Show(RGB555_Data.Length.ToString());
-                // Flip data horizontally
-                for (int i = 0; i < RGB555_Data.Length; i += Width)
-                {
-                    Array.Reverse(RGB555_Data, i, Width);
-                }
-
-                return RGB555_Data;
-            }
-        }
-
-        public static byte ClosestPaletteColor(ushort Pixel, ushort[] Palette)
+        public static byte ClosestPaletteColor(ushort Pixel, ushort[] Palette, bool Include_Alpha = false)
         {
             byte Closest = 0;
-            double Closest_Distance = -1;
+            double Closest_Distance = 0;
 
             // Convert Pixel to RGB
-            uint r = (uint)((Pixel >> (10)) & 31);
-            uint g = (uint)((Pixel >> 5) & 31);
-            uint b = (uint)(Pixel & 31);
-            uint R = r * 255 / 31;
-            uint G = g * 255 / 31;
-            uint B = b * 255 / 31;
+            RGB5A3_to_RGBA8(Pixel, out byte A, out byte R, out byte G, out byte B);
 
             for (int i = 0; i < Palette.Length; i++)
             {
                 // Convert Palette to RGB
-                uint r2 = (uint)((Palette[i] >> (10)) & 31);
-                uint g2 = (uint)((Palette[i] >> 5) & 31);
-                uint b2 = (uint)(Palette[i] & 31);
-                uint R2 = r2 * 255 / 31;
-                uint G2 = g2 * 255 / 31;
-                uint B2 = b2 * 255 / 31;
+                RGB5A3_to_RGBA8(Palette[i], out byte A2, out byte R2, out byte G2, out byte B2);
 
                 // Using Distance, might switch to Chroma
-                double Distance = Math.Sqrt(Math.Pow(R - R2, 2) + Math.Pow(G - G2, 2) + Math.Pow(B - B2, 2));
-                if (Closest_Distance == -1 || (Distance < Closest_Distance && Distance >= 0))
+                double Distance = Math.Sqrt((Include_Alpha ? Math.Pow(A - A2, 2) : 0) + Math.Pow(R - R2, 2) + Math.Pow(G - G2, 2) + Math.Pow(B - B2, 2));
+                if (i == 0 || (Distance < Closest_Distance && Distance >= 0))
                 {
                     Closest_Distance = Distance;
                     Closest = (byte)i;
+                    if (Closest_Distance == 0)
+                        return Closest;
                 }
             }
 
             return Closest;
         }
 
-        public static byte[] ConvertRGB555(ushort[] RGB555_Data, ushort[] Palette, int Sections, int Blocks, int Width)
+        public static byte[] ConvertRGB555(ushort[] RGB555_Data, ushort[] Palette, int Sections, int Blocks, int Width, bool Encode_Data = true)
         {
             byte[] Data = new byte[RGB555_Data.Length / 2];
             bool Warning_Shown = false;
+            bool Include_Alpha = false;
 
             for (int i = 0; i < RGB555_Data.Length; i += 2)
             {
@@ -138,6 +104,7 @@ namespace AC_Texture_Editor
                 {
                     if (Palette[x] == RGB555_Data[i])
                     {
+                        //System.Windows.Forms.MessageBox.Show(Palette[x].ToString("X4") + " | " + RGB555_Data[i].ToString("X4"));
                         Condensed_Data = (byte)(x << 4);
                         Found = true;
                         break;
@@ -147,11 +114,14 @@ namespace AC_Texture_Editor
                 if (!Found)
                 {
                     if (!Warning_Shown)
-                        System.Windows.Forms.MessageBox.Show(
-                            string.Format("No valid color found for pixel #{0} with RGB555 value of {1}. The closest palette color will be used. More occurances may occur.",
-                            i, RGB555_Data[i].ToString("X4")));
+                        if (System.Windows.Forms.MessageBox.Show(
+                            string.Format("No valid color found for pixel #{0} with RGB5A3 value of {1}. The closest palette color will be used. More occurances may occur. Would you like to include Transparency when determining the closest color?",
+                            i, RGB555_Data[i].ToString("X4")), "Import", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                        {
+                            Include_Alpha = true;
+                        }
                     Warning_Shown = true;
-                    Condensed_Data = (byte)(ClosestPaletteColor(RGB555_Data[i], Palette) << 4);
+                    Condensed_Data = (byte)(ClosestPaletteColor(RGB555_Data[i], Palette, Include_Alpha) << 4);
                 }
 
                 Found = false;
@@ -168,17 +138,20 @@ namespace AC_Texture_Editor
                 if (!Found)
                 {
                     if (!Warning_Shown)
-                        System.Windows.Forms.MessageBox.Show(
-                            string.Format("No valid color found for pixel #{0} with RGB555 value of {1}. The closest palette color will be used. More occurances may occur.",
-                            i, RGB555_Data[i].ToString("X4")));
+                        if (System.Windows.Forms.MessageBox.Show(
+                            string.Format("No valid color found for pixel #{0} with RGB5A3 value of {1}. The closest palette color will be used. More occurances may occur. Would you like to include Transparency when determining the closest color?",
+                            i, RGB555_Data[i].ToString("X4")), "Import", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                        {
+                            Include_Alpha = true;
+                        }
                     Warning_Shown = true;
-                    Condensed_Data += ClosestPaletteColor(RGB555_Data[i + 1], Palette);
+                    Condensed_Data += ClosestPaletteColor(RGB555_Data[i + 1], Palette, Include_Alpha);
                 }
 
                 Data[i / 2] = Condensed_Data;
             }
 
-            return Encode(Data); //Swap_Pattern(Data, Sections, Blocks, Width, true);
+            return Encode_Data ? Encode(Data) : Data; //Swap_Pattern(Data, Sections, Blocks, Width, true);
         }
 
         // Temporary until I fix Swap_Pattern with re-encoding (not sure why it's broken)
@@ -360,41 +333,54 @@ namespace AC_Texture_Editor
             return Palette;
         }
 
-        public static Bitmap GenerateBitmap(byte[] patternRawData, ushort[] Palette, int Sections, int Blocks, int Width, int Size_X, int Size_Y, bool Swap = true)
+        public static int[] RGB555A3_to_RGBA8_Palette(ushort[] RGB555A3)
+        {
+            int[] RGBA8 = new int[16];
+            for (int i = 0; i < 16; i++)
+            {
+                RGB5A3_to_RGBA8(RGB555A3[i], out byte A, out byte R, out byte G, out byte B);
+                RGBA8[i] = (A << 24) | (R << 16) | (G << 8) | B;
+            }
+            return RGBA8;
+        }
+
+        public static Bitmap GenerateBitmap(byte[] patternRawData, int[] Palette, int Sections, int Blocks, int Width, int Size_X, int Size_Y, bool Swap = true)
         {
             byte[] Organized_Data = Swap ? Swap_Pattern(patternRawData, Sections, Blocks, Width) : patternRawData;
-            byte[] patternBitmapBuffer = new byte[Organized_Data.Length * 4];
+            byte[] patternBitmapBuffer = new byte[Organized_Data.Length * 8];
 
             int pos = 0;
-            for (int i = 0; i < patternBitmapBuffer.Length; i += 4)
+            for (int i = 0; i < patternBitmapBuffer.Length; i += 8)
             {
                 byte LeftPixel = (byte)((Organized_Data[pos] >> 4) & 0x0F);
                 byte RightPixel = (byte)(Organized_Data[pos] & 0x0F);
-                Buffer.BlockCopy(BitConverter.GetBytes(Palette[LeftPixel]), 0, patternBitmapBuffer, i, 2);
-                Buffer.BlockCopy(BitConverter.GetBytes(Palette[RightPixel]), 0, patternBitmapBuffer, i + 2, 2);
+                Buffer.BlockCopy(BitConverter.GetBytes(Palette[LeftPixel]), 0, patternBitmapBuffer, i, 4);
+                Buffer.BlockCopy(BitConverter.GetBytes(Palette[RightPixel]), 0, patternBitmapBuffer, i + 4, 4);
                 pos++;
             }
 
-            Bitmap Pattern_Bitmap = new Bitmap(Size_X, Size_Y, PixelFormat.Format16bppRgb555);
-            BitmapData bitmapData = Pattern_Bitmap.LockBits(new Rectangle(0, 0, Size_X, Size_Y), ImageLockMode.WriteOnly, PixelFormat.Format16bppRgb555);
+            Bitmap Pattern_Bitmap = new Bitmap(Size_X, Size_Y, PixelFormat.Format32bppArgb);
+            BitmapData bitmapData = Pattern_Bitmap.LockBits(new Rectangle(0, 0, Size_X, Size_Y), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
             System.Runtime.InteropServices.Marshal.Copy(patternBitmapBuffer, 0, bitmapData.Scan0, patternBitmapBuffer.Length);
             Pattern_Bitmap.UnlockBits(bitmapData);
             return Pattern_Bitmap;
         }
 
-        public static Bitmap DrawPalette(ushort[] Palette)
+        public static Bitmap DrawPalette(int[] Palette)
         {
-            byte[] patternBitmapBuffer = new byte[8192];
+            byte[] patternBitmapBuffer = new byte[16384];
             for (int i = 0; i < 16; i++)
             {
-                for (int x = 0; x < 512; x += 2)
+                for (int x = 0; x < 1024; x += 4)
                 {
-                    patternBitmapBuffer[i * 512 + x + 1] = (byte)(Palette[i] >> 8);
-                    patternBitmapBuffer[i * 512 + x] = (byte)(Palette[i]);
+                    patternBitmapBuffer[i * 1024 + x + 3] = (byte)(Palette[i] >> 24);
+                    patternBitmapBuffer[i * 1024 + x + 2] = (byte)(Palette[i] >> 16);
+                    patternBitmapBuffer[i * 1024 + x + 1] = (byte)(Palette[i] >> 8);
+                    patternBitmapBuffer[i * 1024 + x] = (byte)(Palette[i]);
                 }
             }
-            Bitmap Pattern_Bitmap = new Bitmap(16, 256, PixelFormat.Format16bppRgb555);
-            BitmapData bitmapData = Pattern_Bitmap.LockBits(new Rectangle(0, 0, 16, 256), ImageLockMode.WriteOnly, PixelFormat.Format16bppRgb555);
+            Bitmap Pattern_Bitmap = new Bitmap(16, 256, PixelFormat.Format32bppArgb);
+            BitmapData bitmapData = Pattern_Bitmap.LockBits(new Rectangle(0, 0, 16, 256), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
             System.Runtime.InteropServices.Marshal.Copy(patternBitmapBuffer, 0, bitmapData.Scan0, patternBitmapBuffer.Length);
             Pattern_Bitmap.UnlockBits(bitmapData);
             return Pattern_Bitmap;

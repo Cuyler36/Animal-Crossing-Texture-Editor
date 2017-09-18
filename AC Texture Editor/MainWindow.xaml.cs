@@ -45,6 +45,7 @@ namespace AC_Texture_Editor
         private bool Setting_Color = false;
         private bool Mouse_Down = false;
         private string RGBBox_LastText = "";
+        private string RGBABox_LastText = "";
         private int Last_X = -1;
         private int Last_Y = -1;
         private Canvas[] Palette_Objects;
@@ -87,46 +88,49 @@ namespace AC_Texture_Editor
         private void PopulateTreeView(TextureEntry[] Entries, TreeViewItem Parent = null)
         {
             // Only clear it on the first run
-            if (Parent == null)
+            if (Entries != null)
             {
-                EntryTreeView.Items.Clear();
-            }
-
-            for (int i = 0; i < Entries.Length; i++)
-            {
-                TextureEntry Entry = Entries[i];
-                TreeViewItem Entry_Item = new TreeViewItem();
-
-                StackPanel Panel = new StackPanel();
-                Panel.Orientation = Orientation.Horizontal;
-
-                Label Name_Label = new Label();
-                Name_Label.Content = Entry.Texture_Name ?? i.ToString();
-
-                Panel.Children.Add(Name_Label);
-                Entry_Item.Header = Panel;
-
-                if (Entry.IsContainer)
-                {
-                    PopulateTreeView(Entry.Subentries, Entry_Item);
-                }
-                else
-                {
-                    System.Windows.Controls.Image Preview = new System.Windows.Controls.Image();
-                    Preview.Source = BitmapSourceFromBitmap(Entry.Texture);
-                    Preview.Width = 16;
-                    Preview.Height = 16;
-                    Panel.Children.Add(Preview);
-                    Entry_Item.Selected += new RoutedEventHandler((object s, RoutedEventArgs e) => Entry_Item_Selected(s, e, Preview.Source, Entry));
-                }
-
                 if (Parent == null)
                 {
-                    EntryTreeView.Items.Add(Entry_Item);
+                    EntryTreeView.Items.Clear();
                 }
-                else
+
+                for (int i = 0; i < Entries.Length; i++)
                 {
-                    Parent.Items.Add(Entry_Item);
+                    TextureEntry Entry = Entries[i];
+                    TreeViewItem Entry_Item = new TreeViewItem();
+
+                    StackPanel Panel = new StackPanel();
+                    Panel.Orientation = Orientation.Horizontal;
+
+                    Label Name_Label = new Label();
+                    Name_Label.Content = Entry.Texture_Name ?? i.ToString();
+
+                    Panel.Children.Add(Name_Label);
+                    Entry_Item.Header = Panel;
+
+                    if (Entry.IsContainer)
+                    {
+                        PopulateTreeView(Entry.Subentries, Entry_Item);
+                    }
+                    else
+                    {
+                        System.Windows.Controls.Image Preview = new System.Windows.Controls.Image();
+                        Preview.Source = BitmapSourceFromBitmap(Entry.Texture);
+                        Preview.Width = 16;
+                        Preview.Height = 16;
+                        Panel.Children.Add(Preview);
+                        Entry_Item.Selected += new RoutedEventHandler((object s, RoutedEventArgs e) => Entry_Item_Selected(s, e, Preview.Source, Entry));
+                    }
+
+                    if (Parent == null)
+                    {
+                        EntryTreeView.Items.Add(Entry_Item);
+                    }
+                    else
+                    {
+                        Parent.Items.Add(Entry_Item);
+                    }
                 }
             }
         }
@@ -149,22 +153,22 @@ namespace AC_Texture_Editor
                 Hex_Palette[i] = (uint)((A << 24) | (R << 16) | (G << 8) | B);
             }
 
-            Palette0.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[0] >> 16), (byte)(Hex_Palette[0] >> 8), (byte)(Hex_Palette[0])));
-            Palette1.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[1] >> 16), (byte)(Hex_Palette[1] >> 8), (byte)(Hex_Palette[1])));
-            Palette2.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[2] >> 16), (byte)(Hex_Palette[2] >> 8), (byte)(Hex_Palette[2])));
-            Palette3.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[3] >> 16), (byte)(Hex_Palette[3] >> 8), (byte)(Hex_Palette[3])));
-            Palette4.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[4] >> 16), (byte)(Hex_Palette[4] >> 8), (byte)(Hex_Palette[4])));
-            Palette5.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[5] >> 16), (byte)(Hex_Palette[5] >> 8), (byte)(Hex_Palette[5])));
-            Palette6.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[6] >> 16), (byte)(Hex_Palette[6] >> 8), (byte)(Hex_Palette[6])));
-            Palette7.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[7] >> 16), (byte)(Hex_Palette[7] >> 8), (byte)(Hex_Palette[7])));
-            Palette8.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[8] >> 16), (byte)(Hex_Palette[8] >> 8), (byte)(Hex_Palette[8])));
-            Palette9.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[9] >> 16), (byte)(Hex_Palette[9] >> 8), (byte)(Hex_Palette[9])));
-            Palette10.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[10] >> 16), (byte)(Hex_Palette[10] >> 8), (byte)(Hex_Palette[10])));
-            Palette11.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[11] >> 16), (byte)(Hex_Palette[11] >> 8), (byte)(Hex_Palette[11])));
-            Palette12.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[12] >> 16), (byte)(Hex_Palette[12] >> 8), (byte)(Hex_Palette[12])));
-            Palette13.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[13] >> 16), (byte)(Hex_Palette[13] >> 8), (byte)(Hex_Palette[13])));
-            Palette14.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[14] >> 16), (byte)(Hex_Palette[14] >> 8), (byte)(Hex_Palette[14])));
-            Palette15.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb((byte)(Hex_Palette[15] >> 16), (byte)(Hex_Palette[15] >> 8), (byte)(Hex_Palette[15])));
+            Palette0.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[0] >> 24), (byte)(Hex_Palette[0] >> 16), (byte)(Hex_Palette[0] >> 8), (byte)(Hex_Palette[0])));
+            Palette1.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[1] >> 24), (byte)(Hex_Palette[1] >> 16), (byte)(Hex_Palette[1] >> 8), (byte)(Hex_Palette[1])));
+            Palette2.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[2] >> 24), (byte)(Hex_Palette[2] >> 16), (byte)(Hex_Palette[2] >> 8), (byte)(Hex_Palette[2])));
+            Palette3.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[3] >> 24), (byte)(Hex_Palette[3] >> 16), (byte)(Hex_Palette[3] >> 8), (byte)(Hex_Palette[3])));
+            Palette4.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[4] >> 24), (byte)(Hex_Palette[4] >> 16), (byte)(Hex_Palette[4] >> 8), (byte)(Hex_Palette[4])));
+            Palette5.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[5] >> 24), (byte)(Hex_Palette[5] >> 16), (byte)(Hex_Palette[5] >> 8), (byte)(Hex_Palette[5])));
+            Palette6.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[6] >> 24), (byte)(Hex_Palette[6] >> 16), (byte)(Hex_Palette[6] >> 8), (byte)(Hex_Palette[6])));
+            Palette7.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[7] >> 24), (byte)(Hex_Palette[7] >> 16), (byte)(Hex_Palette[7] >> 8), (byte)(Hex_Palette[7])));
+            Palette8.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[8] >> 24), (byte)(Hex_Palette[8] >> 16), (byte)(Hex_Palette[8] >> 8), (byte)(Hex_Palette[8])));
+            Palette9.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[9] >> 24), (byte)(Hex_Palette[9] >> 16), (byte)(Hex_Palette[9] >> 8), (byte)(Hex_Palette[9])));
+            Palette10.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[10] >> 24), (byte)(Hex_Palette[10] >> 16), (byte)(Hex_Palette[10] >> 8), (byte)(Hex_Palette[10])));
+            Palette11.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[11] >> 24), (byte)(Hex_Palette[11] >> 16), (byte)(Hex_Palette[11] >> 8), (byte)(Hex_Palette[11])));
+            Palette12.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[12] >> 24), (byte)(Hex_Palette[12] >> 16), (byte)(Hex_Palette[12] >> 8), (byte)(Hex_Palette[12])));
+            Palette13.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[13] >> 24), (byte)(Hex_Palette[13] >> 16), (byte)(Hex_Palette[13] >> 8), (byte)(Hex_Palette[13])));
+            Palette14.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[14] >> 24), (byte)(Hex_Palette[14] >> 16), (byte)(Hex_Palette[14] >> 8), (byte)(Hex_Palette[14])));
+            Palette15.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Hex_Palette[15] >> 24), (byte)(Hex_Palette[15] >> 16), (byte)(Hex_Palette[15] >> 8), (byte)(Hex_Palette[15])));
         }
 
         private void MousePosition_to_Coordinates(MouseEventArgs e, out int X, out int Y)
@@ -203,7 +207,7 @@ namespace AC_Texture_Editor
             SelectedEntry.Raw_Data = TextureUtility.Encode(SelectedEntry.Organized_Data);
 
             // Redraw bitmap
-            SelectedEntry.Texture = TextureUtility.GenerateBitmap(SelectedEntry.Raw_Data, SelectedEntry.Palette, SelectedEntry.Sections, SelectedEntry.Blocks,
+            SelectedEntry.Texture = TextureUtility.GenerateBitmap(SelectedEntry.Raw_Data, SelectedEntry.RGBA8_Palette, SelectedEntry.Sections, SelectedEntry.Blocks,
                 SelectedEntry.Width, SelectedEntry.Image_Width, SelectedEntry.Image_Height);
 
             SelectedImage.Source = BitmapSourceFromBitmap(SelectedEntry.Texture);
@@ -271,14 +275,15 @@ namespace AC_Texture_Editor
             transparencySlider.Value = Alpha;
 
             rgbBox.Text = SelectedEntry.Palette[Index].ToString("X4");
+            rgba8Box.Text = ((Alpha << 24) | (Red << 16) | (Green << 8) | Blue).ToString("X8");
 
-            ColorPreview.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(Red, Green, Blue));
+            ColorPreview.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(Alpha, Red, Green, Blue));
             Setting_Color = false;
         }
 
-        private void SetPaletteColorRGB(byte R, byte G, byte B)
+        private void SetPaletteColorARGB(byte A, byte R, byte G, byte B)
         {
-            ColorPreview.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(R, G, B));
+            ColorPreview.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(A, R, G, B));
         }
 
         private static bool IsTextAllowed(string text)
@@ -316,7 +321,8 @@ namespace AC_Texture_Editor
                 }
                 ushort Color = TextureUtility.RGBA8_to_RGB5A3(byte.Parse(transparencyBox.Text), byte.Parse(redBox.Text), byte.Parse(greenBox.Text), byte.Parse(blueBox.Text));
                 rgbBox.Text = Color.ToString("X4");
-                SetPaletteColorRGB(byte.Parse(redBox.Text), byte.Parse(greenBox.Text), byte.Parse(blueBox.Text));
+                rgba8Box.Text = ((byte.Parse(transparencyBox.Text) << 24) | (byte.Parse(redBox.Text) << 16) | (byte.Parse(greenBox.Text) << 8) | byte.Parse(blueBox.Text)).ToString("X8");
+                SetPaletteColorARGB(byte.Parse(transparencyBox.Text), byte.Parse(redBox.Text), byte.Parse(greenBox.Text), byte.Parse(blueBox.Text));
                 Setting_Color = false;
             }
         }
@@ -356,7 +362,8 @@ namespace AC_Texture_Editor
                             transparencySlider.Value = Value;
                         }
                         rgbBox.Text = Color.ToString("X4");
-                        SetPaletteColorRGB(byte.Parse(redBox.Text), byte.Parse(greenBox.Text), byte.Parse(blueBox.Text));
+                        rgba8Box.Text = ((byte.Parse(transparencyBox.Text) << 24) | (byte.Parse(redBox.Text) << 16) | (byte.Parse(greenBox.Text) << 8) | byte.Parse(blueBox.Text)).ToString("X8");
+                        SetPaletteColorARGB(byte.Parse(transparencyBox.Text), byte.Parse(redBox.Text), byte.Parse(greenBox.Text), byte.Parse(blueBox.Text));
                         Setting_Color = false;
                     }
                 }
@@ -373,7 +380,7 @@ namespace AC_Texture_Editor
             {
                 Setting_Color = true;
                 TextureUtility.RGB5A3_to_RGBA8(Color, out byte A, out byte R, out byte G, out byte B);
-                SetPaletteColorRGB(R, G, B);
+                SetPaletteColorARGB(A, R, G, B);
                 RGBBox_LastText = rgbBox.Text;
                 redBox.Text = R.ToString();
                 redSlider.Value = R;
@@ -383,6 +390,7 @@ namespace AC_Texture_Editor
                 blueSlider.Value = B;
                 transparencyBox.Text = A.ToString();
                 transparencySlider.Value = A;
+                rgba8Box.Text = ((A << 24) | (R << 16) | (G << 8) | B).ToString("X8");
                 Setting_Color = false;
             }
             else if (!string.IsNullOrEmpty(rgbBox.Text))
@@ -397,6 +405,47 @@ namespace AC_Texture_Editor
             rgbBox.SelectionLength = 0;
         }
 
+        private void rgba8Box_PreviewTextInput(object sender, TextChangedEventArgs e)
+        {
+            if (Setting_Color)
+                return;
+
+            rgbBox.Text = rgbBox.Text.ToUpper();
+            if (SelectedEntry != null && int.TryParse(rgbBox.Text, NumberStyles.AllowHexSpecifier, null, out int Color))
+            {
+                Setting_Color = true;
+                byte A = (byte)(Color >> 24);
+                byte R = (byte)(Color >> 16);
+                byte G = (byte)(Color >> 8);
+                byte B = (byte)(Color);
+                ushort UColor = TextureUtility.RGBA8_to_RGB5A3(A, R, G, B);
+                // Reconvert it since we lose some percision with this conversion
+                TextureUtility.RGB5A3_to_RGBA8(UColor, out byte A2, out byte R2, out byte G2, out byte B2);
+                SetPaletteColorARGB(A2, R2, G2, B2);
+                RGBBox_LastText = rgbBox.Text;
+                redBox.Text = R2.ToString();
+                redSlider.Value = R2;
+                greenBox.Text = G2.ToString();
+                greenSlider.Value = G2;
+                blueBox.Text = B2.ToString();
+                blueSlider.Value = B2;
+                transparencyBox.Text = A2.ToString();
+                transparencySlider.Value = A2;
+                rgbBox.Text = UColor.ToString("X2");
+                Setting_Color = false;
+            }
+            else if (!string.IsNullOrEmpty(rgba8Box.Text))
+            {
+                rgba8Box.Text = RGBABox_LastText;
+            }
+            else
+            {
+                RGBABox_LastText = "";
+            }
+            rgbBox.SelectionStart = rgba8Box.Text.Length;
+            rgbBox.SelectionLength = 0;
+        }
+
         private void SetColorButton_Click(object sender, RoutedEventArgs e)
         {
             if (SelectedEntry != null && ushort.TryParse(rgbBox.Text, NumberStyles.AllowHexSpecifier, null, out ushort Color))
@@ -405,8 +454,10 @@ namespace AC_Texture_Editor
                 {
                     TextureEntry Current_Entry = SelectedEntry.Parent.Subentries[i];
                     Current_Entry.Palette[SelectedColor] = Color;
-                    Current_Entry.Texture = TextureUtility.GenerateBitmap(Current_Entry.Raw_Data, Current_Entry.Palette, Current_Entry.Sections,
-                        Current_Entry.Blocks, Current_Entry.Width, Current_Entry.Image_Width, Current_Entry.Image_Height);
+                    Current_Entry.Texture = TextureUtility.GenerateBitmap(Current_Entry.Organized_Data, Current_Entry.RGBA8_Palette, Current_Entry.Sections,
+                        Current_Entry.Blocks, Current_Entry.Width, Current_Entry.Image_Width, Current_Entry.Image_Height, false);
+                    TextureUtility.RGB5A3_to_RGBA8(Color, out byte A, out byte R, out byte G, out byte B);
+                    Current_Entry.RGBA8_Palette[SelectedColor] = (A << 24) | (R << 16) | (G << 8) | B;
                 }
                 // Redraw TreeView
                 PopulateTreeView(TextureEntries);
@@ -428,24 +479,32 @@ namespace AC_Texture_Editor
                     byte[] Bitmap_Data = File.ReadAllBytes(File_Select.FileName);
                     if (Bitmap_Data[0] == 0x42 && Bitmap_Data[1] == 0x4D) // Check first two bytes are hex of ASCII "BM"
                     {
-                        if (Bitmap_Data[0x1C] == 16) // Check bits per pixel is set to 16
+                        if (Bitmap_Data[0x1C] == 32) // Check bits per pixel is set to 32
                         {
                             if (BitConverter.ToInt32(Bitmap_Data.Skip(0x12).Take(4).ToArray(), 0) == SelectedEntry.Image_Width
                                 && BitConverter.ToInt32(Bitmap_Data.Skip(0x16).Take(4).ToArray(), 0) == SelectedEntry.Image_Height) // Check for equal sizing
                             {
                                 try
                                 {
-                                    // Strip Bitmap File Header (0x36 bytes)
-                                    byte[] Stripped_Data = Bitmap_Data.Skip(0x36).ToArray();
+                                    // Strip Bitmap File Header
+                                    byte[] Stripped_Data = Bitmap_Data.Skip(BitConverter.ToInt32(Bitmap_Data.Skip(0xA).Take(4).ToArray(), 0)).ToArray();
+
+                                    // Convert int Data to ushorts
+                                    ushort[] Temp_Buff = new ushort[SelectedEntry.Image_Height * SelectedEntry.Image_Height];
+                                    for (int i = 0; i < Temp_Buff.Length; i++)
+                                    {
+                                        int tIdx = i * 4;
+                                        Temp_Buff[i] = TextureUtility.RGBA8_to_RGB5A3(Stripped_Data[tIdx + 3], Stripped_Data[tIdx + 2], Stripped_Data[tIdx + 1], Stripped_Data[tIdx]);
+                                    }
 
                                     // Convert Stripped Data to ushorts
-                                    ushort[] RGB555_Data = new ushort[Stripped_Data.Length / 2];
+                                    ushort[] RGB555_Data = new ushort[Temp_Buff.Length];
 
                                     // Flip it vertically
                                     int idx = 0;
-                                    for (int i = Stripped_Data.Length - 2; i >= 0; i -= 2)
+                                    for (int i = Temp_Buff.Length - 1; i >= 0; i--)
                                     {
-                                        RGB555_Data[idx] = (ushort)((Stripped_Data[i + 1] << 8) + Stripped_Data[i]);
+                                        RGB555_Data[idx] = Temp_Buff[i];
                                         idx++;
                                     }
 
@@ -457,17 +516,18 @@ namespace AC_Texture_Editor
 
                                     // Convert Sripped Data to AC format
                                     byte[] Converted_Data = TextureUtility.ConvertRGB555(RGB555_Data, SelectedEntry.Palette, SelectedEntry.Sections,
-                                        SelectedEntry.Blocks, SelectedEntry.Width);
+                                        SelectedEntry.Blocks, SelectedEntry.Width, false);
                                     SelectedEntry.Raw_Data = TextureUtility.Encode(Converted_Data);
+                                    SelectedEntry.Organized_Data = Converted_Data;
 
                                     // Generate new Bitmap and redraw TreeView
-                                    SelectedEntry.Texture = TextureUtility.GenerateBitmap(Converted_Data, SelectedEntry.Palette, SelectedEntry.Sections, SelectedEntry.Blocks,
-                                        SelectedEntry.Width, SelectedEntry.Image_Width, SelectedEntry.Image_Height);
+                                    SelectedEntry.Texture = TextureUtility.GenerateBitmap(Converted_Data, SelectedEntry.RGBA8_Palette, SelectedEntry.Sections, SelectedEntry.Blocks,
+                                        SelectedEntry.Width, SelectedEntry.Image_Width, SelectedEntry.Image_Height, false);
 
                                     PopulateTreeView(TextureEntries);
                                     Entry_Item_Selected(null, null, BitmapSourceFromBitmap(SelectedEntry.Texture), SelectedEntry);
                                 }
-                                catch { MessageBox.Show("An error occured while importing the image! The image cannot be processed."); }
+                                catch (Exception err) { MessageBox.Show(err.Message); MessageBox.Show("An error occured while importing the image! The image cannot be processed."); }
                             }
                             else
                             {
@@ -476,7 +536,7 @@ namespace AC_Texture_Editor
                         }
                         else
                         {
-                            MessageBox.Show("Unable to import the image because the bits per pixel are wrong. Images need to be 16 bits per pixel (RGB555)");
+                            MessageBox.Show("Unable to import the image because the bits per pixel are wrong. Images need to be 32 bits per pixel (ARGB8)");
                         }
                     }
                     else
@@ -511,7 +571,7 @@ namespace AC_Texture_Editor
                 }
                 using (FileStream Palette_Stream = new FileStream(Palette_File_Name, FileMode.OpenOrCreate))
                 {
-                    TextureUtility.DrawPalette(SelectedEntry.Palette).Save(Palette_Stream, ImageFormat.Bmp);
+                    TextureUtility.DrawPalette(SelectedEntry.RGBA8_Palette).Save(Palette_Stream, ImageFormat.Bmp);
                     Palette_Stream.Flush();
                 }
             }
@@ -550,7 +610,7 @@ namespace AC_Texture_Editor
                         string Palette_File_Name = Sub_Dir + @"\Palette.bmp";
                         using (FileStream Palette_Stream = new FileStream(Palette_File_Name, FileMode.OpenOrCreate))
                         {
-                            TextureUtility.DrawPalette(TextureEntries[i].Subentries[0].Palette).Save(Palette_Stream, ImageFormat.Bmp);
+                            TextureUtility.DrawPalette(TextureEntries[i].Subentries[0].RGBA8_Palette).Save(Palette_Stream, ImageFormat.Bmp);
                             Palette_Stream.Flush();
                         }
                     }
@@ -672,7 +732,7 @@ namespace AC_Texture_Editor
                         break;
                 }
 
-                if (TextureEntries.Length > 0 && TextureEntries[0] != null)
+                if (TextureEntries != null && TextureEntries.Length > 0 && TextureEntries[0] != null)
                 {
                     if (TextureEntries[0].Subentries.Length > 0 && TextureEntries[0].Subentries[0] != null)
                     {
@@ -695,6 +755,7 @@ namespace AC_Texture_Editor
                         blueBox.IsEnabled = true;
                         transparencyBox.IsEnabled = true;
                         rgbBox.IsEnabled = true;
+                        rgba8Box.IsEnabled = true;
                         SetColorButton.IsEnabled = true;
                     }
                     else
@@ -724,12 +785,14 @@ namespace AC_Texture_Editor
                         {
                             for (int x = 0; x < TextureEntries[i].Subentries.Length; x++)
                             {
+                                //MessageBox.Show(string.Format("Writing Entry: {0} | Sub-entry: {1}", i, x));
                                 TextureEntries[i].Subentries[x].Write(Texture_Writer, Palette_Writer);
                             }
                         }
                         else
                         {
                             TextureEntries[i].Write(Texture_Writer, Palette_Writer);
+                            MessageBox.Show(string.Format("Writing Entry: {0}", i));
                         }
                     }
                     Texture_Writer.Flush();
