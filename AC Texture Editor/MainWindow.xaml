@@ -40,7 +40,7 @@
                 </DrawingBrush>
             </Canvas.Background>
         </Canvas>
-        <TreeView x:Name="EntryTreeView" HorizontalAlignment="Left" VerticalAlignment="Top" Width="160" Height="603" Margin="758,20,0,0"/>
+        <TreeView x:Name="EntryTreeView" HorizontalAlignment="Left" VerticalAlignment="Top" Width="185" Height="603" Margin="733,20,0,0"/>
         <DockPanel LastChildFill="False"  Width="512" Margin="19,0,0,15" Height="16" VerticalAlignment="Bottom" HorizontalAlignment="Left">
             <DockPanel.Resources>
                 <Style TargetType="{x:Type Border}">

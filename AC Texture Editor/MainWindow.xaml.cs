@@ -244,7 +244,9 @@ namespace AC_Texture_Editor
         {
             Mouse_Down = false;
             if (TextureEntries != null)
-                PopulateTreeView(TextureEntries);
+            {
+                ((((EntryTreeView.Items[SelectedEntry.Parent.Entry_Index] as TreeViewItem).Items[SelectedEntry.Entry_Index] as TreeViewItem).Header as StackPanel).Children[1] as System.Windows.Controls.Image).Source = SelectedImage.Source;
+            }
         }
 
         private void CanvasMouseButtonDown(object sender, MouseButtonEventArgs e)
@@ -454,17 +456,21 @@ namespace AC_Texture_Editor
                 {
                     TextureEntry Current_Entry = SelectedEntry.Parent.Subentries[i];
                     Current_Entry.Palette[SelectedColor] = Color;
-                    Current_Entry.Texture = TextureUtility.GenerateBitmap(Current_Entry.Organized_Data, Current_Entry.RGBA8_Palette, Current_Entry.Sections,
-                        Current_Entry.Blocks, Current_Entry.Width, Current_Entry.Image_Width, Current_Entry.Image_Height, false);
                     TextureUtility.RGB5A3_to_RGBA8(Color, out byte A, out byte R, out byte G, out byte B);
                     Current_Entry.RGBA8_Palette[SelectedColor] = (A << 24) | (R << 16) | (G << 8) | B;
+                    Current_Entry.Texture = TextureUtility.GenerateBitmap(Current_Entry.Organized_Data, Current_Entry.RGBA8_Palette, Current_Entry.Sections,
+                        Current_Entry.Blocks, Current_Entry.Width, Current_Entry.Image_Width, Current_Entry.Image_Height, false);
                 }
-                // Redraw TreeView
-                PopulateTreeView(TextureEntries);
 
                 // Reload Current Bitmap & Palette
-                SelectedImage.Source = BitmapSourceFromBitmap(SelectedEntry.Texture);
                 Set_Palette_Colors(SelectedEntry.Palette);
+                SelectedImage.Source = BitmapSourceFromBitmap(SelectedEntry.Texture);
+
+                // Update TreeView (Hacky Method...)
+                for (int i = 0; i < SelectedEntry.Parent.Subentries.Length; i++)
+                {
+                    (((((TreeViewItem)EntryTreeView.Items[SelectedEntry.Parent.Entry_Index]).Items[i] as TreeViewItem).Header as StackPanel).Children[1] as System.Windows.Controls.Image).Source = BitmapSourceFromBitmap(SelectedEntry.Parent.Subentries[i].Texture);
+                }
             }
         }
 
@@ -479,10 +485,10 @@ namespace AC_Texture_Editor
                     byte[] Bitmap_Data = File.ReadAllBytes(File_Select.FileName);
                     if (Bitmap_Data[0] == 0x42 && Bitmap_Data[1] == 0x4D) // Check first two bytes are hex of ASCII "BM"
                     {
-                        if (Bitmap_Data[0x1C] == 32) // Check bits per pixel is set to 32
+                        if (BitConverter.ToInt32(Bitmap_Data.Skip(0x12).Take(4).ToArray(), 0) == SelectedEntry.Image_Width
+                            && BitConverter.ToInt32(Bitmap_Data.Skip(0x16).Take(4).ToArray(), 0) == SelectedEntry.Image_Height) // Check for equal sizing
                         {
-                            if (BitConverter.ToInt32(Bitmap_Data.Skip(0x12).Take(4).ToArray(), 0) == SelectedEntry.Image_Width
-                                && BitConverter.ToInt32(Bitmap_Data.Skip(0x16).Take(4).ToArray(), 0) == SelectedEntry.Image_Height) // Check for equal sizing
+                            if (Bitmap_Data[0x1C] == 32 || Bitmap_Data[0x1C] == 24) // Check bits per pixel is set to 32
                             {
                                 try
                                 {
@@ -493,8 +499,16 @@ namespace AC_Texture_Editor
                                     ushort[] Temp_Buff = new ushort[SelectedEntry.Image_Height * SelectedEntry.Image_Height];
                                     for (int i = 0; i < Temp_Buff.Length; i++)
                                     {
-                                        int tIdx = i * 4;
-                                        Temp_Buff[i] = TextureUtility.RGBA8_to_RGB5A3(Stripped_Data[tIdx + 3], Stripped_Data[tIdx + 2], Stripped_Data[tIdx + 1], Stripped_Data[tIdx]);
+                                        if (Bitmap_Data[0x1C] == 32)
+                                        {
+                                            int tIdx = i * 4;
+                                            Temp_Buff[i] = TextureUtility.RGBA8_to_RGB5A3(Stripped_Data[tIdx + 3], Stripped_Data[tIdx + 2], Stripped_Data[tIdx + 1], Stripped_Data[tIdx]);
+                                        }
+                                        else // Use 0xFF Alpha for 24 bpp
+                                        {
+                                            int tIdx = i * 3;
+                                            Temp_Buff[i] = TextureUtility.RGBA8_to_RGB5A3(0xFF, Stripped_Data[tIdx + 2], Stripped_Data[tIdx + 1], Stripped_Data[tIdx]);
+                                        }
                                     }
 
                                     // Convert Stripped Data to ushorts
@@ -524,19 +538,20 @@ namespace AC_Texture_Editor
                                     SelectedEntry.Texture = TextureUtility.GenerateBitmap(Converted_Data, SelectedEntry.RGBA8_Palette, SelectedEntry.Sections, SelectedEntry.Blocks,
                                         SelectedEntry.Width, SelectedEntry.Image_Width, SelectedEntry.Image_Height, false);
 
-                                    PopulateTreeView(TextureEntries);
-                                    Entry_Item_Selected(null, null, BitmapSourceFromBitmap(SelectedEntry.Texture), SelectedEntry);
+                                    BitmapSource Img = BitmapSourceFromBitmap(SelectedEntry.Texture);
+                                    ((((EntryTreeView.Items[SelectedEntry.Parent.Entry_Index] as TreeViewItem).Items[SelectedEntry.Entry_Index] as TreeViewItem).Header as StackPanel).Children[1] as System.Windows.Controls.Image).Source = Img;
+                                    Entry_Item_Selected(null, null, Img, SelectedEntry);
                                 }
                                 catch (Exception err) { MessageBox.Show(err.Message); MessageBox.Show("An error occured while importing the image! The image cannot be processed."); }
                             }
                             else
                             {
-                                MessageBox.Show("Unable to import the image because the width and height are not the same as the texture being replaced!");
+                                MessageBox.Show("Unable to import the image because the bits per pixel are wrong. Images need to be 24 bits per pixel (RGB8) or 32 bits per pixel (ARGB8)");
                             }
                         }
                         else
                         {
-                            MessageBox.Show("Unable to import the image because the bits per pixel are wrong. Images need to be 32 bits per pixel (ARGB8)");
+                            MessageBox.Show("Unable to import the image because the width and height are not the same as the texture being replaced!");
                         }
                     }
                     else
@@ -648,6 +663,7 @@ namespace AC_Texture_Editor
                                     Data_Buffer.Skip(Palette_Offset).Take(0x20).ToArray(), Expression);
                             }
                             TextureEntries[Face] = new TextureEntry(Subentries);
+                            TextureEntries[Face].Entry_Index = Face;
                             TextureEntries[Face].Texture_Name = ObjectDatabase.Faces[Face];
                         }
                         break;
@@ -681,6 +697,7 @@ namespace AC_Texture_Editor
                                 Subentries[0] = new TextureEntry(Shirt_Offset, Palette_Offset, 4, 32, 4, 32, 32, Data_Buffer.Skip(Shirt_Offset).Take(0x200).ToArray(),
                                     Pallet_Buffer.Skip(Palette_Offset).Take(0x20).ToArray(), 0);
                                 TextureEntries[Shirt] = new TextureEntry(Subentries);
+                                TextureEntries[Shirt].Entry_Index = Shirt;
                                 TextureEntries[Shirt].Texture_Name = ObjectDatabase.Shirts[Shirt];
                             }
                         }
@@ -703,6 +720,7 @@ namespace AC_Texture_Editor
                                     Data_Buffer.Skip(Palette_Offset).Take(0x20).ToArray(), Pattern);
                             }
                             TextureEntries[Floor] = new TextureEntry(Subentries);
+                            TextureEntries[Floor].Entry_Index = Floor;
                             TextureEntries[Floor].Texture_Name = TextureEntries.Length == 73 ? ObjectDatabase.e_plus_Carpets[Floor] : ObjectDatabase.Carpets[Floor];
                         }
                         break;
@@ -724,6 +742,7 @@ namespace AC_Texture_Editor
                                     Data_Buffer.Skip(Palette_Offset).Take(0x20).ToArray(), Pattern);
                             }
                             TextureEntries[Wall] = new TextureEntry(Subentries);
+                            TextureEntries[Wall].Entry_Index = Wall;
                             TextureEntries[Wall].Texture_Name = TextureEntries.Length == 73 ? ObjectDatabase.e_plus_Wallpaper[Wall] : ObjectDatabase.Wallpaper[Wall];
                         }
                         break;
