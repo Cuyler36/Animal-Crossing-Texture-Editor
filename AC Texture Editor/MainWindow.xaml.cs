@@ -421,7 +421,7 @@ namespace AC_Texture_Editor
                 byte G = (byte)(Color >> 8);
                 byte B = (byte)(Color);
                 ushort UColor = TextureUtility.RGBA8_to_RGB5A3(A, R, G, B);
-                // Reconvert it since we lose some percision with this conversion
+                // Reconvert it since we lose some precision with this conversion
                 TextureUtility.RGB5A3_to_RGBA8(UColor, out byte A2, out byte R2, out byte G2, out byte B2);
                 SetPaletteColorARGB(A2, R2, G2, B2);
                 RGBABox_LastText = rgba8Box.Text;
@@ -542,7 +542,7 @@ namespace AC_Texture_Editor
                                     ((((EntryTreeView.Items[SelectedEntry.Parent.Entry_Index] as TreeViewItem).Items[SelectedEntry.Entry_Index] as TreeViewItem).Header as StackPanel).Children[1] as System.Windows.Controls.Image).Source = Img;
                                     Entry_Item_Selected(null, null, Img, SelectedEntry);
                                 }
-                                catch (Exception err) { MessageBox.Show(err.Message); MessageBox.Show("An error occured while importing the image! The image cannot be processed."); }
+                                catch { MessageBox.Show("An error occured while importing the image! The image cannot be processed."); }
                             }
                             else
                             {
@@ -857,6 +857,34 @@ namespace AC_Texture_Editor
                         {
                             Palette_Writer.Flush();
                             Palette_Writer.Close();
+                        }
+                    }
+                }
+            }
+        }
+
+        private void DumpPaletteFile_Click(object sender, RoutedEventArgs e)
+        {
+            using (var Dialog = new System.Windows.Forms.OpenFileDialog())
+            {
+                Dialog.Filter = "Binary File|*.bin";
+                Dialog.FileName = "";
+                if (Dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK && File.Exists(Dialog.FileName))
+                {
+                    byte[] PaletteFileData = File.ReadAllBytes(Dialog.FileName);
+                    var PaletteImageSaveLocation = Path.GetDirectoryName(Dialog.FileName) + "\\" + Path.GetFileNameWithoutExtension(Dialog.FileName);
+                    if (!Directory.Exists(PaletteImageSaveLocation))
+                    {
+                        Directory.CreateDirectory(PaletteImageSaveLocation);
+                    }
+
+                    for (int i = 0; i < PaletteFileData.Length; i += 0x20)
+                    {
+                        if (PaletteFileData.Length - i >= 0x20)
+                        {
+                            int[] PaletteData = TextureUtility.RGB555A3_to_RGBA8_Palette(TextureUtility.CondensePalette(PaletteFileData.Skip(i).Take(0x20).ToArray()));
+                            Bitmap PaletteBitmap = TextureUtility.DrawPalette(PaletteData);
+                            PaletteBitmap.Save(PaletteImageSaveLocation + "\\Palette" + (i / 0x20).ToString() + ".png", ImageFormat.Png);
                         }
                     }
                 }

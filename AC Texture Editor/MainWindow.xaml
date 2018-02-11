@@ -17,7 +17,8 @@
                 <MenuItem Header="_Texture">
                     <MenuItem x:Name="Import" Header="_Import Over Selected" IsEnabled="False" Click="ImportOverSelected_Click"/>
                     <MenuItem x:Name="Dump" Header="_Dump Selected" IsEnabled="False" Click="DumpSelected_Click"/>
-                    <MenuItem x:Name="DumpAll" Header="_Dump All" IsEnabled="False" Click="DumpAll_Click"/>
+                    <MenuItem x:Name="DumpAll" Header="Dump _All" IsEnabled="False" Click="DumpAll_Click"/>
+                    <MenuItem x:Name="DumPaletteFile" Header="Dump _Palettes in File" IsEnabled="True" Click="DumpPaletteFile_Click"/>
                 </MenuItem>
             </Menu>
         </DockPanel>
